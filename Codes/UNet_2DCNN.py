@@ -1,3 +1,6 @@
+'''Author: Sakib Mahmud'''
+'''MIT Free License'''
+
 # Import Necessary Libraries
 from keras.models import Model
 from keras.layers import Input, Reshape, Flatten, Dense, Add, Concatenate, BatchNormalization, Activation
