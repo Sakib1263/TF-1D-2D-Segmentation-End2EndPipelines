@@ -1,6 +1,6 @@
 # Import Necessary Libraries
 from keras.models import Model
-from keras.layers import Input, Reshape, Flatten, Dense, Add, concatenate, BatchNormalization, Activation
+from keras.layers import Input, Reshape, Flatten, Dense, Add, Concatenate, BatchNormalization, Activation
 from keras.layers import Conv2D, UpSampling2D, MaxPooling2D, Conv2DTranspose
 
 
@@ -26,7 +26,7 @@ def Concat_Block(input1, *argv):
     # Concatenation Block from the KERAS Library
     cat = input1
     for arg in range(0, len(argv)):
-        cat = concatenate([cat, argv[arg]], axis=-1)
+        cat = Concatenate([cat, argv[arg]], axis=-1)
 
     return cat
 
@@ -62,7 +62,7 @@ def MultiResBlock(inputs, model_width, kernel, multiplier, alpha):
     conv5x5 = Conv_Block(conv3x3, int(w * 0.333), kernel, multiplier)
     conv7x7 = Conv_Block(conv5x5, int(w * 0.5), kernel, multiplier)
 
-    out = concatenate([conv3x3, conv5x5, conv7x7], axis=-1)
+    out = Concatenate([conv3x3, conv5x5, conv7x7], axis=-1)
     out = BatchNormalization()(out)
     out = Add()([shortcut, out])
     out = Activation('relu')(out)
