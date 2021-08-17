@@ -25,5 +25,5 @@ The speciality about this model is its flexibility, such as:
 5. Number of input kernel/filter, commonly known as Width of the model can be varied.
 6. Number of classes for Classification tasks and number of extracted features for Regression tasks can be varied.
 7. Number of Channels in the Input Dataset can be varied.  
-8. 
+
 Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder.  
