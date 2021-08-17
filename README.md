@@ -1,5 +1,5 @@
-# UNet2D-Segmentation-Model-Builder-KERAS
-This repository contains 2D Signal (Image) Segmentation Model Builder for UNet and several of its variants developed in KERAS-Tensorflow. The code supports Deep Supervision, Autoencoder mode and other options explained in the DEMO. The segmentation models can be used for binary or multiclass segmentation, or for regression tasks.  
+# UNet-Segmentation-Model-Builder-KERAS
+This repository contains 1D and 2D Signal Segmentation Model Builder for UNet and several of its variants developed in KERAS-Tensorflow. The code supports Deep Supervision, Autoencoder mode and other options explained in the DEMO. The segmentation models can be used for binary or multiclass segmentation, or for regression tasks.  
 
 # Models supported
 1. **UNet** [Reference: https://arxiv.org/abs/1505.04597]
