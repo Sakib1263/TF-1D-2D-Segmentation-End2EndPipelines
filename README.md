@@ -14,4 +14,16 @@ This repository contains 2D Signal (Image) Segmentation Model Builder for UNet a
 Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution instead of UpSampling in the Decoder section. The models can accept image of various sizes and shapes, different model depth, filter or kernel number, kernel size, number of channels, etc. The models can optionally perform Deep Supervision on the inputs or can be used as an AutoEncoder to extract latent features which can be used for feature ranking, regression, etc. The models are flexible enough to be used for regression, or binary or multiclass segmentation.
 
 MultiResUNet Architecture
-![MultiResUNet Architecture](https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-KERAS/blob/main/Documents/Images/MultiResUNet.png "MultiResUNet Model") 
+![MultiResUNet Architecture](https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-KERAS/blob/main/Documents/Images/MultiResUNet.png "MultiResUNet Model")  
+
+# Supported Features
+The speciality about this model is its flexibility, such as:
+1. The user can choose any of the 5 available UNet variants for either 1D or 2D Segmentation tasks.
+2. The models can be used for Binary or Multi-Class Classification, or Regression type Segmentation tasks.
+3. The models allow Deep Supervision with flexibility during Segmentation.
+4. The segmentation models can also be used as Autoencoders for Feature Extraction.
+5. Number of input kernel/filter, commonly known as Width of the model can be varied.
+6. Number of classes for Classification tasks and number of extracted features for Regression tasks can be varied.
+7. Number of Channels in the Input Dataset can be varied.  
+8. 
+Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder.  
