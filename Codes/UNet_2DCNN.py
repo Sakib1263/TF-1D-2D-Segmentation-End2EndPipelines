@@ -4,7 +4,7 @@
 
 # Import Necessary Libraries
 from keras.models import Model
-from keras.layers import Input, Reshape, Flatten, Dense, Add, Concatenate, BatchNormalization, Activation
+from keras.layers import Input, Reshape, Flatten, Dense, Add, concatenate, BatchNormalization, Activation
 from keras.layers import Conv2D, UpSampling2D, MaxPooling2D, Conv2DTranspose
 
 
@@ -30,7 +30,7 @@ def Concat_Block(input1, *argv):
     # Concatenation Block from the KERAS Library
     cat = input1
     for arg in range(0, len(argv)):
-        cat = Concatenate([cat, argv[arg]], axis=-1)
+        cat = concatenate([cat, argv[arg]], axis=-1)
 
     return cat
 
@@ -46,8 +46,8 @@ def Feature_Extraction_Block(inputs, model_width, Dim2, feature_number):
     # Feature Extraction Block for the AutoEncoder Mode
     latent = Flatten()(inputs)
     latent = Dense(feature_number, name='features')(latent)
-    latent = Dense(model_width * Dim2)(latent)
-    latent = Reshape((Dim2, model_width))(latent)
+    latent = Dense(model_width * Dim2 * Dim2)(latent)
+    latent = Reshape((Dim2, Dim2, model_width))(latent)
 
     return latent
 
@@ -66,7 +66,7 @@ def MultiResBlock(inputs, model_width, kernel, multiplier, alpha):
     conv5x5 = Conv_Block(conv3x3, int(w * 0.333), kernel, multiplier)
     conv7x7 = Conv_Block(conv5x5, int(w * 0.5), kernel, multiplier)
 
-    out = Concatenate([conv3x3, conv5x5, conv7x7], axis=-1)
+    out = concatenate([conv3x3, conv5x5, conv7x7], axis=-1)
     out = BatchNormalization()(out)
     out = Add()([shortcut, out])
     out = Activation('relu')(out)
@@ -76,7 +76,6 @@ def MultiResBlock(inputs, model_width, kernel, multiplier, alpha):
 
 
 def ResPath(inputs, model_depth, model_width, kernel, multiplier):
-
     ''' ResPath '''
     # filters {int} -- [description]
     # length {int} -- length of ResPath
@@ -216,7 +215,6 @@ class UNet:
 
         return model
 
-
     def UNet_v2(self):
         """Variable UNet Model Design - Version 2"""
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
@@ -296,7 +294,6 @@ class UNet:
 
         return model
 
-
     def UNetE(self):
         """Variable Ensemble UNet Model Design"""
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
@@ -370,7 +367,6 @@ class UNet:
             model = Model(inputs=[inputs], outputs=levels)
 
         return model
-
 
     def UNetE_v2(self):
         """Variable Ensemble UNet Model Design - Version 2"""
@@ -449,7 +445,6 @@ class UNet:
 
         return model
 
-
     def UNetP(self):
         """Variable UNet+ Model Design"""
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
@@ -523,7 +518,6 @@ class UNet:
             model = Model(inputs=[inputs], outputs=levels)
 
         return model
-
 
     def UNetP_v2(self):
         """Variable UNet+ Model Design - Version 2"""
@@ -602,7 +596,6 @@ class UNet:
 
         return model
 
-
     def UNetPP(self):
         """Variable UNet++ Model Design"""
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
@@ -680,7 +673,6 @@ class UNet:
             model = Model(inputs=[inputs], outputs=levels)
 
         return model
-
 
     def UNetPP_v2(self):
         """Variable UNet++ Model Design - Version 2"""
@@ -763,7 +755,6 @@ class UNet:
 
         return model
 
-
     def MultiResUNet(self):
         ''' 1D MultiResUNet with an option for Deep Supervision and/or being used as an AutoEncoder '''
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
@@ -831,7 +822,6 @@ class UNet:
             model = Model(inputs=[inputs], outputs=levels)
 
         return model
-
 
     def MultiResUNet_v2(self):
         ''' 1D MultiResUNet with an option for Deep Supervision and/or being used as an AutoEncoder - Version 2'''
