@@ -1,6 +1,7 @@
-'''Author: Sakib Mahmud'''
+'''Author: Sakib Mahmud''' 
+'''MIT License'''
 '''Source: https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-KERAS/blob/main/Codes/UNet_2DCNN.py'''
-'''MIT Free License'''
+
 
 # Import Necessary Libraries
 from keras.models import Model
