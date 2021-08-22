@@ -1,3 +1,8 @@
+'''Author: Sakib Mahmud''' 
+'''MIT License'''
+'''Source: https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-Tensorflow-Keras/blob/main/Codes/UNet_1DCNN.py'''
+
+
 # Import Necessary Libraries
 import tensorflow as tf
 
