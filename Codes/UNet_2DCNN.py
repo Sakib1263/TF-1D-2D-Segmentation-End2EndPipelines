@@ -4,51 +4,49 @@
 
 
 # Import Necessary Libraries
-from keras.models import Model
-from keras.layers import Input, Reshape, Flatten, Dense, Add, concatenate, BatchNormalization, Activation
-from keras.layers import Conv2D, UpSampling2D, MaxPooling2D, Conv2DTranspose
+import tensorflow as tf
 
 
 def Conv_Block(inputs, model_width, kernel, multiplier):
     # 1D Convolutional Block
-    conv = Conv2D(model_width * multiplier, kernel, padding='same')(inputs)
-    batch_norm = BatchNormalization()(conv)
-    activate = Activation('relu')(batch_norm)
+    x = tf.keras.layers.Conv2D(model_width * multiplier, kernel, padding='same')(inputs)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Activation('relu')(x)
 
-    return activate
+    return x
 
 
 def trans_conv2D(inputs, model_width, multiplier):
     # 1D Transposed Convolutional Block, used instead of UpSampling
-    transposed_conv = Conv2DTranspose(model_width * multiplier, (2,2), strides=(2,2), padding='same')(inputs)  # Stride = 2, Kernel Size = 2
-    batch_norm = BatchNormalization()(transposed_conv)
-    activate = Activation('relu')(batch_norm)
+    x = tf.keras.layers.Conv2DTranspose(model_width * multiplier, (2,2), strides=(2,2), padding='same')(inputs)  # Stride = 2, Kernel Size = 2
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Activation('relu')(x)
 
-    return activate
+    return x
 
 
 def Concat_Block(input1, *argv):
-    # Concatenation Block from the KERAS Library
+    # Concatenation Block from the Keras Library
     cat = input1
     for arg in range(0, len(argv)):
-        cat = concatenate([cat, argv[arg]], axis=-1)
+        cat = tf.keras.layers.concatenate([cat, argv[arg]], axis=-1)
 
     return cat
 
 
 def upConv_Block(inputs):
     # 1D UpSampling Block
-    up = UpSampling2D(size=(2, 2))(inputs)
+    up = tf.keras.layers.UpSampling2D(size=(2, 2))(inputs)
 
     return up
 
 
 def Feature_Extraction_Block(inputs, model_width, Dim2, feature_number):
     # Feature Extraction Block for the AutoEncoder Mode
-    latent = Flatten()(inputs)
-    latent = Dense(feature_number, name='features')(latent)
-    latent = Dense(model_width * Dim2 * Dim2)(latent)
-    latent = Reshape((Dim2, Dim2, model_width))(latent)
+    latent = tf.keras.layers.Flatten()(inputs)
+    latent = tf.keras.layers.Dense(feature_number, name='features')(latent)
+    latent = tf.keras.layers.Dense(model_width * Dim2 * Dim2)(latent)
+    latent = tf.keras.layers.Reshape((Dim2, Dim2, model_width))(latent)
 
     return latent
 
@@ -67,11 +65,11 @@ def MultiResBlock(inputs, model_width, kernel, multiplier, alpha):
     conv5x5 = Conv_Block(conv3x3, int(w * 0.333), kernel, multiplier)
     conv7x7 = Conv_Block(conv5x5, int(w * 0.5), kernel, multiplier)
 
-    out = concatenate([conv3x3, conv5x5, conv7x7], axis=-1)
-    out = BatchNormalization()(out)
-    out = Add()([shortcut, out])
-    out = Activation('relu')(out)
-    out = BatchNormalization()(out)
+    out = tf.keras.layers.concatenate([conv3x3, conv5x5, conv7x7], axis=-1)
+    out = tf.keras.layers.BatchNormalization()(out)
+    out = tf.keras.layers.Add()([shortcut, out])
+    out = tf.keras.layers.Activation('relu')(out)
+    out = tf.keras.layers.BatchNormalization()(out)
 
     return out
 
@@ -86,24 +84,24 @@ def ResPath(inputs, model_depth, model_width, kernel, multiplier):
     shortcut = Conv_Block(shortcut, model_width, 1, multiplier)
 
     out = Conv_Block(inputs, model_width, kernel, multiplier)
-    out = Add()([shortcut, out])
-    out = Activation('relu')(out)
-    out = BatchNormalization()(out)
+    out = tf.keras.layers.Add()([shortcut, out])
+    out = tf.keras.layers.Activation('relu')(out)
+    out = tf.keras.layers.BatchNormalization()(out)
 
     for i in range(1, model_depth):
         shortcut = out
         shortcut = Conv_Block(shortcut, model_width, 1, multiplier)
 
         out = Conv_Block(out, model_width, kernel, multiplier)
-        out = Add()([shortcut, out])
-        out = Activation('relu')(out)
-        out = BatchNormalization()(out)
+        out = tf.keras.layers.Add()([shortcut, out])
+        out = tf.keras.layers.Activation('relu')(out)
+        out = tf.keras.layers.BatchNormalization()(out)
 
     return out
 
 
-'''Version 2 (v2) of all Models use Transposed Convolution instead of UpSampling'''
 class UNet:
+    # Version 2 (v2) of all Models use Transposed Convolution instead of UpSampling
     def __init__(self, length, width, model_depth, num_channel, model_width, kernel_size,
                  problem_type='Regression', output_nums=1, ds=0, ae=0, *argv):
         # length: Input Image Length (x-dim)
@@ -150,16 +148,16 @@ class UNet:
         i = 1
 
         # Encoding
-        inputs = Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = MaxPooling2D(pool_size=2)(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=2)(conv)
         convs["conv%s" % i] = conv
 
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = MaxPooling2D(pool_size=2)(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=2)(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -169,7 +167,7 @@ class UNet:
         elif (self.A_E == 0) and (self.D_S == 1):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** self.model_depth)
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            level0 = Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
+            level0 = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
             levels.append(level0)
         elif (self.A_E == 1) and (self.D_S == 0):
             latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
@@ -179,7 +177,7 @@ class UNet:
             latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
             conv = Conv_Block(latent, self.model_width, self.kernel_size, 2 ** self.model_depth)
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            level0 = Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
+            level0 = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
             levels.append(level0)
         else:
             print("ERROR: Please Check the Values of the Input Parameters!")
@@ -194,7 +192,7 @@ class UNet:
                 deconv = Conv_Block(Concat_Block(upConv_Block(deconv), convs_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
                 deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
             elif self.D_S == 1:
-                level = Conv2D(1, (1, 1), name=f'level{self.model_depth - j}')(deconv)
+                level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth - j}')(deconv)
                 levels.append(level)
                 deconv = Conv_Block(Concat_Block(upConv_Block(deconv), convs_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
                 deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
@@ -202,17 +200,18 @@ class UNet:
                 print("ERROR: Please Check the Values of the Input Parameters!")
 
         # Output
+        outputs = []
         if self.problem_type == 'Classification':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
         elif self.problem_type == 'Regression':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
 
-        model = Model(inputs=[inputs], outputs=[outputs])
+        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 
         if self.D_S == 1:
             levels.append(outputs)
             levels.reverse()
-            model = Model(inputs=[inputs], outputs=levels)
+            model = tf.keras.Model(inputs=[inputs], outputs=levels)
 
         return model
 
@@ -226,16 +225,16 @@ class UNet:
         i = 1
 
         # Encoding
-        inputs = Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = MaxPooling2D(pool_size=(2,2))(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
         convs["conv%s" % i] = conv
 
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = MaxPooling2D(pool_size=(2,2))(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -245,7 +244,7 @@ class UNet:
         elif (self.A_E == 0) and (self.D_S == 1):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** self.model_depth)
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            level0 = Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
+            level0 = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
             levels.append(level0)
         elif (self.A_E == 1) and (self.D_S == 0):
             latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
@@ -255,7 +254,7 @@ class UNet:
             latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
             conv = Conv_Block(latent, self.model_width, self.kernel_size, 2 ** self.model_depth)
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            level0 = Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
+            level0 = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
             levels.append(level0)
         else:
             print("ERROR: Please Check the Values of the Input Parameters!")
@@ -272,7 +271,7 @@ class UNet:
                 deconv = Conv_Block(Concat_Block(deconv, convs_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
                 deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
             elif self.D_S == 1:
-                level = Conv2D(1, (1, 1), name=f'level{self.model_depth - j}')(deconv)
+                level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth - j}')(deconv)
                 levels.append(level)
                 deconv = trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1))
                 deconv = Conv_Block(Concat_Block(deconv, convs_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
@@ -281,17 +280,18 @@ class UNet:
                 print("ERROR: Please Check the Values of the Input Parameters!")
 
         # Output
+        outputs = []
         if self.problem_type == 'Classification':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
         elif self.problem_type == 'Regression':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
 
-        model = Model(inputs=[inputs], outputs=[outputs])
+        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 
         if self.D_S == 1:
             levels.append(outputs)
             levels.reverse()
-            model = Model(inputs=[inputs], outputs=levels)
+            model = tf.keras.Model(inputs=[inputs], outputs=levels)
 
         return model
 
@@ -305,15 +305,15 @@ class UNet:
         i = 1
 
         # Encoding
-        inputs = Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = MaxPooling2D(pool_size=(2,2))(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
         convs["conv%s" % i] = conv
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = MaxPooling2D(pool_size=(2,2))(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -330,7 +330,7 @@ class UNet:
         # Decoding
         convs_list = list(convs.values())
         if self.D_S == 1:
-            level = Conv2D(1, (1, 1), name=f'level{self.model_depth}')(convs_list[0])
+            level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(convs_list[0])
             levels.append(level)
 
         deconvs = {}
@@ -349,23 +349,24 @@ class UNet:
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = Conv2D(1, (1, 1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
+                    level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
                     levels.append(level)
 
         deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
 
         # Output
+        outputs = []
         if self.problem_type == 'Classification':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
         elif self.problem_type == 'Regression':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
 
-        model = Model(inputs=[inputs], outputs=[outputs])
+        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 
         if self.D_S == 1:
             levels.append(outputs)
             levels.reverse()
-            model = Model(inputs=[inputs], outputs=levels)
+            model = tf.keras.Model(inputs=[inputs], outputs=levels)
 
         return model
 
@@ -379,15 +380,15 @@ class UNet:
         i = 1
 
         # Encoding
-        inputs = Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = MaxPooling2D(pool_size=(2,2))(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
         convs["conv%s" % i] = conv
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = MaxPooling2D(pool_size=(2,2))(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -404,7 +405,7 @@ class UNet:
         # Decoding
         convs_list = list(convs.values())
         if self.D_S == 1:
-            level = Conv2D(1, (1, 1), name=f'level{self.model_depth}')(convs_list[0])
+            level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(convs_list[0])
             levels.append(level)
 
         deconvs = {}
@@ -426,23 +427,24 @@ class UNet:
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = Conv2D(1, (1, 1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
+                    level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
                     levels.append(level)
 
         deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
 
         # Output
+        outputs = []
         if self.problem_type == 'Classification':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
         elif self.problem_type == 'Regression':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
 
-        model = Model(inputs=[inputs], outputs=[outputs])
+        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 
         if self.D_S == 1:
             levels.append(outputs)
             levels.reverse()
-            model = Model(inputs=[inputs], outputs=levels)
+            model = tf.keras.Model(inputs=[inputs], outputs=levels)
 
         return model
 
@@ -456,15 +458,15 @@ class UNet:
         i = 1
 
         # Encoding
-        inputs = Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = MaxPooling2D(pool_size=(2,2))(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
         convs["conv%s" % i] = conv
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = MaxPooling2D(pool_size=(2,2))(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -481,7 +483,7 @@ class UNet:
         # Decoding
         convs_list = list(convs.values())
         if self.D_S == 1:
-            level = Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
+            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
             levels.append(level)
 
         deconvs = {}
@@ -500,23 +502,24 @@ class UNet:
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
+                    level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
                     levels.append(level)
 
         deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
 
         # Output
+        outputs = []
         if self.problem_type == 'Classification':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
         elif self.problem_type == 'Regression':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
 
-        model = Model(inputs=[inputs], outputs=[outputs])
+        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 
         if self.D_S == 1:
             levels.append(outputs)
             levels.reverse()
-            model = Model(inputs=[inputs], outputs=levels)
+            model = tf.keras.Model(inputs=[inputs], outputs=levels)
 
         return model
 
@@ -530,15 +533,15 @@ class UNet:
         i = 1
 
         # Encoding
-        inputs = Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = MaxPooling2D(pool_size=(2,2))(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
         convs["conv%s" % i] = conv
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = MaxPooling2D(pool_size=(2,2))(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -555,7 +558,7 @@ class UNet:
         # Decoding
         convs_list = list(convs.values())
         if self.D_S == 1:
-            level = Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
+            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
             levels.append(level)
 
         deconvs = {}
@@ -577,23 +580,24 @@ class UNet:
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
+                    level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
                     levels.append(level)
 
         deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
 
         # Output
+        outputs = []
         if self.problem_type == 'Classification':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
         elif self.problem_type == 'Regression':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
 
-        model = Model(inputs=[inputs], outputs=[outputs])
+        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 
         if self.D_S == 1:
             levels.append(outputs)
             levels.reverse()
-            model = Model(inputs=[inputs], outputs=levels)
+            model = tf.keras.Model(inputs=[inputs], outputs=levels)
 
         return model
 
@@ -607,15 +611,15 @@ class UNet:
         i = 1
 
         # Encoding
-        inputs = Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = MaxPooling2D(pool_size=(2,2))(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
         convs["conv%s" % i] = conv
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = MaxPooling2D(pool_size=(2,2))(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -632,7 +636,7 @@ class UNet:
         # Decoding
         convs_list = list(convs.values())
         if self.D_S == 1:
-            level = Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
+            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
             levels.append(level)
 
         deconvs = {}
@@ -655,23 +659,24 @@ class UNet:
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
+                    level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
                     levels.append(level)
 
         deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
 
         # Output
+        outputs = []
         if self.problem_type == 'Classification':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
         elif self.problem_type == 'Regression':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
 
-        model = Model(inputs=[inputs], outputs=[outputs])
+        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 
         if self.D_S == 1:
             levels.append(outputs)
             levels.reverse()
-            model = Model(inputs=[inputs], outputs=levels)
+            model = tf.keras.Model(inputs=[inputs], outputs=levels)
 
         return model
 
@@ -685,15 +690,15 @@ class UNet:
         i = 1
 
         # Encoding
-        inputs = Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = MaxPooling2D(pool_size=(2,2))(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
         convs["conv%s" % i] = conv
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = MaxPooling2D(pool_size=(2,2))(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -710,7 +715,7 @@ class UNet:
         # Decoding
         convs_list = list(convs.values())
         if self.D_S == 1:
-            level = Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
+            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
             levels.append(level)
 
         deconvs = {}
@@ -736,23 +741,24 @@ class UNet:
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
+                    level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
                     levels.append(level)
 
         deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
 
         # Output
+        outputs = []
         if self.problem_type == 'Classification':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
         elif self.problem_type == 'Regression':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
 
-        model = Model(inputs=[inputs], outputs=[outputs])
+        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 
         if self.D_S == 1:
             levels.append(outputs)
             levels.reverse()
-            model = Model(inputs=[inputs], outputs=levels)
+            model = tf.keras.Model(inputs=[inputs], outputs=levels)
 
         return model
 
@@ -766,14 +772,14 @@ class UNet:
         i = 1
 
         # Encoding
-        inputs = Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
         mresblock = MultiResBlock(inputs, self.model_width, self.kernel_size, 2 ** 0, self.alpha)
-        pool = MaxPooling2D(pool_size=(2,2))(mresblock)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(mresblock)
         mresblocks["mres%s" % i] = ResPath(mresblock, self.model_depth, self.model_width, self.kernel_size, 2 ** 0)
 
         for i in range(2, (self.model_depth + 1)):
             mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** (i - 1), self.alpha)
-            pool = MaxPooling2D(pool_size=(2,2))(mresblock)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(mresblock)
             mresblocks["mres%s" % i] = ResPath(mresblock, (self.model_depth- i + 1), self.model_width, self.kernel_size, 2 ** (i - 1))
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -781,7 +787,7 @@ class UNet:
             mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
         elif (self.A_E == 0) and (self.D_S == 1):
             mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
-            level = Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
+            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
             levels.append(level)
         elif (self.A_E == 1) and (self.D_S == 0):
             latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
@@ -789,7 +795,7 @@ class UNet:
         elif (self.A_E == 1) and (self.D_S == 1):
             latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
             mresblock = MultiResBlock(latent, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
-            level = Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
+            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
             levels.append(level)
         else:
             print("ERROR: Please Check the Values of the Input Parameters!")
@@ -803,24 +809,25 @@ class UNet:
             if self.D_S == 0:
                 deconv = MultiResBlock(Concat_Block(upConv_Block(deconv), mresblocks_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
             elif self.D_S == 1:
-                level = Conv2D(1, (1,1), name=f'level{self.model_depth - j}')(deconv)
+                level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - j}')(deconv)
                 levels.append(level)
                 deconv = MultiResBlock(Concat_Block(upConv_Block(deconv), mresblocks_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
             else:
                 print("ERROR: Please Check the Values of the Input Parameters!")
 
         # Output
+        outputs = []
         if self.problem_type == 'Classification':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
         elif self.problem_type == 'Regression':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
 
-        model = Model(inputs=[inputs], outputs=[outputs])
+        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 
         if self.D_S == 1:
             levels.append(outputs)
             levels.reverse()
-            model = Model(inputs=[inputs], outputs=levels)
+            model = tf.keras.Model(inputs=[inputs], outputs=levels)
 
         return model
 
@@ -834,14 +841,14 @@ class UNet:
         i = 1
 
         # Encoding
-        inputs = Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
         mresblock = MultiResBlock(inputs, self.model_width, self.kernel_size, 2 ** 0, self.alpha)
-        pool = MaxPooling2D(pool_size=(2,2))(mresblock)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(mresblock)
         mresblocks["mres%s" % i] = ResPath(mresblock, self.model_depth, self.model_width, self.kernel_size, 2 ** 0)
 
         for i in range(2, (self.model_depth + 1)):
             mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** (i - 1), self.alpha)
-            pool = MaxPooling2D(pool_size=(2,2))(mresblock)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(mresblock)
             mresblocks["mres%s" % i] = ResPath(mresblock, (self.model_depth- i + 1), self.model_width, self.kernel_size, 2 ** (i - 1))
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -849,7 +856,7 @@ class UNet:
             mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
         elif (self.A_E == 0) and (self.D_S == 1):
             mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
-            level = Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
+            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
             levels.append(level)
         elif (self.A_E == 1) and (self.D_S == 0):
             latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
@@ -857,7 +864,7 @@ class UNet:
         elif (self.A_E == 1) and (self.D_S == 1):
             latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
             mresblock = MultiResBlock(latent, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
-            level = Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
+            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
             levels.append(level)
         else:
             print("ERROR: Please Check the Values of the Input Parameters!")
@@ -871,23 +878,24 @@ class UNet:
             if self.D_S == 0:
                 deconv = MultiResBlock(Concat_Block(trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)), mresblocks_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
             elif self.D_S == 1:
-                level = Conv2D(1, (1,1), name=f'level{self.model_depth - j}')(deconv)
+                level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - j}')(deconv)
                 levels.append(level)
                 deconv = MultiResBlock(Concat_Block(trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)), mresblocks_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
             else:
                 print("ERROR: Please Check the Values of the Input Parameters!")
 
         # Output
+        outputs = []
         if self.problem_type == 'Classification':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
         elif self.problem_type == 'Regression':
-            outputs = Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
+            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
 
-        model = Model(inputs=[inputs], outputs=[outputs])
+        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 
         if self.D_S == 1:
             levels.append(outputs)
             levels.reverse()
-            model = Model(inputs=[inputs], outputs=levels)
+            model = tf.keras.Model(inputs=[inputs], outputs=levels)
 
         return model
