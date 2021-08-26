@@ -28,3 +28,4 @@ The speciality about this model is its flexibility, such as:
 8. Number of Channels in the Input Dataset can be varied.  
 
 Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder.  
+**The DEMO will be added soon for 1D and 2D
