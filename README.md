@@ -26,6 +26,7 @@ The speciality about this model is its flexibility, such as:
 6. Number of input kernel/filter, commonly known as Width of the model can be varied.
 7. Number of classes for Classification tasks and number of extracted features for Regression tasks can be varied.
 8. Number of Channels in the Input Dataset can be varied.  
+9. In case of only MultiResUNet, its 'alpha' parameter can be varied (default set to 1.0).
 
 Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder.  
 **The DEMO will be added soon for 1D and 2D
