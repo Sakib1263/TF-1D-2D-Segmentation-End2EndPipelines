@@ -125,9 +125,9 @@ class UNet:
         self.D_S = ds
         self.A_E = ae
         if len(argv) == 0 and ae == 1:
-            print("ERROR: Please Check the Input Parameters! Autoencoder mode was selected but arguments were not provided!")
+            raise ValueError("Please Check the Input Parameters! Autoencoder mode was selected but arguments were not provided!")
         elif len(argv) == 2 and ae == 0:
-            print("ERROR: Please Check the Input Parameters! Autoencoder mode was not selected but extra arguments were provided!")
+            raise ValueError("Please Check the Input Parameters! Autoencoder mode was not selected but extra arguments were provided!")
         elif len(argv) == 1 and ae == 1:
             self.feature_number = argv[0]
         elif len(argv) == 1 and ae == 0:
@@ -136,7 +136,7 @@ class UNet:
             self.feature_number = argv[0]
             self.alpha = argv[1]
         elif len(argv) > 2:
-            print("ERROR: Please Check the Input Parameters! More than 2 optional arguments are not expected!")
+            raise ValueError("Please Check the Input Parameters! More than 2 optional arguments are not expected!")
 
     def UNet(self):
         """Variable UNet Model Design"""
