@@ -20,13 +20,13 @@ MultiResUNet Architecture
 The speciality about this model is its flexibility, such as:
 1. The user can choose any of the 5 available UNet variants for either 1D or 2D Segmentation tasks.
 2. The models can be used for Binary or Multi-Class Classification, or Regression type Segmentation tasks.
-3. The models allow Deep Supervision with flexibility during Segmentation.
-4. The segmentation models can also be used as Autoencoders for Feature Extraction.
+3. The models allow Deep Supervision [5] with flexibility during Segmentation.
+4. The segmentation models can also be used as Autoencoders [6] for Feature Extraction.
 5. The depth of all the models can be varied to form very shallow to very deep networks.
 6. Number of input kernel/filter, commonly known as Width of the model can be varied.
 7. Number of classes for Classification tasks and number of extracted features for Regression tasks can be varied.
 8. Number of Channels in the Input Dataset can be varied.  
-9. In case of only MultiResUNet, its 'alpha' parameter can be varied (default set to 1.0).
+9. In case of only MultiResUNet, its 'alpha' parameter can be varied (default set to 1.0) [4].
 
 Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder.  
 **The DEMO will be added soon for 1D and 2D
@@ -36,3 +36,5 @@ Details of the process are available in the DEMO provided in the codes section. 
 **[2]** Zhou, Z., Siddiquee, M., Tajbakhsh, N., & Liang, J. (2021). UNet++: Redesigning Skip Connections to Exploit Multiscale Features in Image Segmentation. Arxiv-vanity.com. Retrieved 30 August 2021, from https://www.arxiv-vanity.com/papers/1912.05074/.  
 **[3]**  Zhou, Z., Siddiquee, M., Tajbakhsh, N., & Liang, J. (2021). UNet++: A Nested U-Net Architecture for Medical Image Segmentation. arXiv.org. Retrieved 30 August 2021, from https://arxiv.org/abs/1807.10165.  
 **[4]** Ibtehaz, Nabil, and M. Sohel Rahman. “Multiresunet : Rethinking the u-Net Architecture for Multimodal Biomedical Image Segmentation.” ArXiv.org, 11 Feb. 2019, arxiv.org/abs/1902.04049v1.  
+**[5]** Wang, L., Lee, C., Tu, Z., & Lazebnik, S. (2021). Training Deeper Convolutional Networks with Deep Supervision. arXiv.org. Retrieved 30 August 2021, from https://arxiv.org/abs/1505.02496.  
+**[6]** Chang, H. (2021). A Method of Brain Image Optimization based on an Autoencoder Unet. Journal Of Physics: Conference Series, 1952(2), 022064. https://doi.org/10.1088/1742-6596/1952/2/022064  
