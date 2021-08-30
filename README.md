@@ -13,9 +13,9 @@ This repository contains 1D and 2D Signal Segmentation Model Builder for UNet an
 
 Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution instead of UpSampling in the Decoder section. The models can accept image of various sizes and shapes, different model depth, filter or kernel number, kernel size, number of channels, etc. The models can optionally perform Deep Supervision on the inputs or can be used as an AutoEncoder to extract latent features which can be used for feature ranking, regression, etc. The models are flexible enough to be used for regression, or binary or multiclass segmentation.  
 
-Yet another variant is the MultiResUNet architecture as shown below. It has an interesting Residual path for the skip connection and uses MultiRes Blocks instead of normal UNet blocks for deep learning. MultiResUNet model also uses Transposed Convolutions in the encoder by default instead of UpSampling.
-![MultiResUNet Architecture](https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-KERAS/blob/main/Documents/Images/MultiResUNet.png "MultiResUNet Model") 
-MultiResUNet Architecture
+## MultiResUNet
+![MultiResUNet Architecture](https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-KERAS/blob/main/Documents/Images/MultiResUNet.png "MultiResUNet Model")  
+Yet another variant is the MultiResUNet architecture as shown below. It has an interesting Residual path for the skip connection and uses MultiRes Blocks instead of normal UNet blocks for deep learning. MultiResUNet model also uses Transposed Convolutions in the encoder by default instead of UpSampling.  
 
 ## Supported Features
 The speciality about this model is its flexibility, such as:
