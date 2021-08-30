@@ -2,11 +2,11 @@
 This repository contains 1D and 2D Signal Segmentation Model Builder for UNet and several of its variants developed in KERAS-Tensorflow. The code supports Deep Supervision, Autoencoder mode and other options explained in the DEMO. The segmentation models can be used for binary or multiclass segmentation, or for regression tasks.  
 
 ## Models supported
-1. **UNet** [Reference: https://arxiv.org/abs/1505.04597]
-2. **UNet Ensembled (UNetE)** [Reference: https://www.arxiv-vanity.com/papers/1912.05074/]
-3. **UNet+ (UNetP)** [Reference: https://www.arxiv-vanity.com/papers/1912.05074/]
-3. **UNet++ (UNetPP)** [Reference: https://arxiv.org/abs/1807.10165]
-5. **MultiResUNet** [Reference: https://arxiv.org/abs/1902.04049]
+1. **UNet** [1]
+2. **UNet Ensembled (UNetE)** [2]
+3. **UNet+ (UNetP)** [2]
+3. **UNet++ (UNetPP)** [3]
+5. **MultiResUNet** [4]
 
 ## UNet Variants' Architectures
 ![UNet Architectures](https://github.com/Sakib1263/UNet2D-Segmentation-Model-Builder-KERAS/blob/main/Documents/Images/UNet.jpg "UNet Models") 
@@ -30,3 +30,9 @@ The speciality about this model is its flexibility, such as:
 
 Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder.  
 **The DEMO will be added soon for 1D and 2D
+
+## References  
+**[1]** Ronneberger, O., Fischer, P., & Brox, T. (2021). U-Net: Convolutional Networks for Biomedical Image Segmentation. arXiv.org. Retrieved 30 August 2021, from https://arxiv.org/abs/1505.04597.  
+**[2]** Zhou, Z., Siddiquee, M., Tajbakhsh, N., & Liang, J. (2021). UNet++: Redesigning Skip Connections to Exploit Multiscale Features in Image Segmentation. Arxiv-vanity.com. Retrieved 30 August 2021, from https://www.arxiv-vanity.com/papers/1912.05074/.  
+**[3]**  Zhou, Z., Siddiquee, M., Tajbakhsh, N., & Liang, J. (2021). UNet++: A Nested U-Net Architecture for Medical Image Segmentation. arXiv.org. Retrieved 30 August 2021, from https://arxiv.org/abs/1807.10165.  
+**[4]** Ibtehaz, Nabil, and M. Sohel Rahman. “Multiresunet : Rethinking the u-Net Architecture for Multimodal Biomedical Image Segmentation.” ArXiv.org, 11 Feb. 2019, arxiv.org/abs/1902.04049v1.  
