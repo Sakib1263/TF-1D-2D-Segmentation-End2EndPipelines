@@ -30,8 +30,7 @@ The speciality about this model is its flexibility, such as:
 Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution [7] instead of UpSampling in the Decoder section.  
 ![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions") 
 
-Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder.  
-**The DEMO will be added soon for 1D and 2D
+Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder. **[The DEMO will be added soon for 1D and 2D]**
 
 ## References  
 **[1]** Ronneberger, O., Fischer, P., & Brox, T. (2021). U-Net: Convolutional Networks for Biomedical Image Segmentation. arXiv.org. Retrieved 30 August 2021, from https://arxiv.org/abs/1505.04597.  
