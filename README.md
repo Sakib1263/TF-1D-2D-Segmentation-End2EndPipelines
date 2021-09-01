@@ -11,7 +11,8 @@ This repository contains 1D and 2D Signal Segmentation Model Builder for UNet an
 ## UNet to UNet++
 ![UNet Architectures](https://github.com/Sakib1263/UNet2D-Segmentation-Model-Builder-KERAS/blob/main/Documents/Images/UNet.jpg "UNet Models") 
 
-Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution instead of UpSampling in the Decoder section. The models can accept image of various sizes and shapes, different model depth, filter or kernel number, kernel size, number of channels, etc. The models can optionally perform Deep Supervision on the inputs or can be used as an AutoEncoder to extract latent features which can be used for feature ranking, regression, etc. The models are flexible enough to be used for regression, or binary or multiclass segmentation.  
+Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution instead of UpSampling in the Decoder section.  
+![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions")  
 
 ## MultiResUNet
 ![MultiResUNet Architecture](https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-KERAS/blob/main/Documents/Images/MultiResUNet.png "MultiResUNet Model")  
@@ -39,3 +40,4 @@ Details of the process are available in the DEMO provided in the codes section. 
 **[4]** Ibtehaz, Nabil, and M. Sohel Rahman. “Multiresunet : Rethinking the u-Net Architecture for Multimodal Biomedical Image Segmentation.” ArXiv.org, 11 Feb. 2019, arxiv.org/abs/1902.04049v1.  
 **[5]** Wang, L., Lee, C., Tu, Z., & Lazebnik, S. (2021). Training Deeper Convolutional Networks with Deep Supervision. arXiv.org. Retrieved 30 August 2021, from https://arxiv.org/abs/1505.02496.  
 **[6]** Chang, H. (2021). A Method of Brain Image Optimization based on an Autoencoder Unet. Journal Of Physics: Conference Series, 1952(2), 022064. https://doi.org/10.1088/1742-6596/1952/2/022064  
+**[7]** Transposed Convolution Demystified. Medium. (2021). Retrieved 1 September 2021, from https://towardsdatascience.com/transposed-convolution-demystified-84ca81b4baba.  
