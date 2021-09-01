@@ -9,10 +9,7 @@ This repository contains 1D and 2D Signal Segmentation Model Builder for UNet an
 5. **MultiResUNet** [4]
 
 ## UNet to UNet++
-![UNet Architectures](https://github.com/Sakib1263/UNet2D-Segmentation-Model-Builder-KERAS/blob/main/Documents/Images/UNet.jpg "UNet Models") 
-
-Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution instead of UpSampling in the Decoder section.  
-![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions")  
+![UNet Architectures](https://github.com/Sakib1263/UNet2D-Segmentation-Model-Builder-KERAS/blob/main/Documents/Images/UNet.jpg "UNet Models")   
 
 ## MultiResUNet
 ![MultiResUNet Architecture](https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-KERAS/blob/main/Documents/Images/MultiResUNet.png "MultiResUNet Model")  
@@ -28,7 +25,10 @@ The speciality about this model is its flexibility, such as:
 6. Number of input kernel/filter, commonly known as Width of the model can be varied.
 7. Number of classes for Classification tasks and number of extracted features for Regression tasks can be varied.
 8. Number of Channels in the Input Dataset can be varied.  
-9. In case of only MultiResUNet, its 'alpha' parameter can be varied (default set to 1.0) [4].
+9. In case of only MultiResUNet, its 'alpha' parameter can be varied (default set to 1.0) [4].  
+
+Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution [7] instead of UpSampling in the Decoder section.  
+![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions") 
 
 Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder.  
 **The DEMO will be added soon for 1D and 2D
