@@ -12,8 +12,12 @@ This repository contains 1D and 2D Signal Segmentation Model Builder for UNet an
 ![UNet Architectures](https://github.com/Sakib1263/UNet2D-Segmentation-Model-Builder-KERAS/blob/main/Documents/Images/UNet.jpg "UNet Models")   
 
 ## MultiResUNet
+Yet another variant is the MultiResUNet architecture as shown above. It has an interesting Residual path for the skip connection and uses MultiRes Blocks instead of normal UNet blocks for deep learning. MultiResUNet model also uses Transposed Convolutions in the encoder by default instead of UpSampling.  
 ![MultiResUNet Architecture](https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-KERAS/blob/main/Documents/Images/MultiResUNet.png "MultiResUNet Model")  
-Yet another variant is the MultiResUNet architecture as shown below. It has an interesting Residual path for the skip connection and uses MultiRes Blocks instead of normal UNet blocks for deep learning. MultiResUNet model also uses Transposed Convolutions in the encoder by default instead of UpSampling.  
+Internal structure for the MultiResUNet block is shown below.  
+![MultiResUNet Block](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/MultiRes%20Block.jpg "MultiResUNet Block")  
+Structure for the Residual Path (or ResPath) is shown below.
+![Residual Path](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Res_Path.jpg "Residual Path")  
 
 ## Supported Features
 The speciality about this model is its flexibility, such as:
