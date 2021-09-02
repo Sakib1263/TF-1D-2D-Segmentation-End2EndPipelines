@@ -9,7 +9,7 @@ This repository contains 1D and 2D Signal Segmentation Model Builder for UNet an
 5. **MultiResUNet** [4]
 
 ## UNet to UNet++
-As it can be seen, from UNet to UNet++, the models becomes more nested and denser (so heavier i.e., more parameters). UNet++ is like a combination of UNetE and UNet+.  
+As it can be seen, from UNet to UNet++, the models become more nested and denser (so heavier i.e., more parameters). UNet++ is like a combination of UNetE and UNet+. Normally users do not try UNet+ or UNetE. But for some problems, UNet++ might overfit. In those cases, these intermediate models can be tried instead of using a shallower or narrower UNet++ model.
 ![UNet Architectures](https://github.com/Sakib1263/UNet2D-Segmentation-Model-Builder-KERAS/blob/main/Documents/Images/UNet.jpg "UNet Models")
 
 ## MultiResUNet
@@ -32,8 +32,9 @@ The speciality about this model is its flexibility, such as:
 8. Number of Channels in the Input Dataset can be varied.  
 9. In case of only MultiResUNet, its 'alpha' parameter can be varied (default set to 1.0) [4].  
 
-Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution [7] instead of UpSampling in the Decoder section. So, 'v2' of MultiResUNet is the original version proposed by the paper [4].
-![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions") 
+Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution [7] instead of UpSampling in the Decoder section. So, 'v2' of MultiResUNet is the original version proposed by the paper [4].  
+![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions") Transposed Convolution  
+
 
 Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder. **[The DEMO will be added soon for 1D and 2D]**
 
