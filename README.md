@@ -9,7 +9,8 @@ This repository contains 1D and 2D Signal Segmentation Model Builder for UNet an
 5. **MultiResUNet** [4]
 
 ## UNet to UNet++
-![UNet Architectures](https://github.com/Sakib1263/UNet2D-Segmentation-Model-Builder-KERAS/blob/main/Documents/Images/UNet.jpg "UNet Models")   
+As it can be seen, from UNet to UNet++, the models becomes more nested and denser (so heavier i.e., more parameters). UNet++ is like a combination of UNetE and UNet+.  
+![UNet Architectures](https://github.com/Sakib1263/UNet2D-Segmentation-Model-Builder-KERAS/blob/main/Documents/Images/UNet.jpg "UNet Models")
 
 ## MultiResUNet
 MultiResUNet has an interesting Residual path for the skip connection and uses MultiRes Blocks instead of normal CNN blocks for deep learning. MultiResUNet model also uses Transposed Convolutions in the encoder by default instead of UpSampling.  
@@ -31,7 +32,7 @@ The speciality about this model is its flexibility, such as:
 8. Number of Channels in the Input Dataset can be varied.  
 9. In case of only MultiResUNet, its 'alpha' parameter can be varied (default set to 1.0) [4].  
 
-Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution [7] instead of UpSampling in the Decoder section. S0, v2 of MultiResUNet is the original version proposed by the paper [4].
+Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution [7] instead of UpSampling in the Decoder section. So, 'v2' of MultiResUNet is the original version proposed by the paper [4].
 ![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions") 
 
 Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder. **[The DEMO will be added soon for 1D and 2D]**
