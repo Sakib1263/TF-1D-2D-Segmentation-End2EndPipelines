@@ -11,17 +11,18 @@ This repository contains 1D and 2D Signal Segmentation Model Builder for UNet an
 ## UNet to UNet++
 As it can be seen, from UNet to UNet++, the models become more nested and denser (so heavier i.e., more parameters). UNet++ is like a combination of UNetE and UNet+. Normally users do not try UNet+ or UNetE. But for some problems, UNet++ might overfit. In those cases, these intermediate models can be tried instead of using a shallower or narrower UNet++ model.
 ![UNet Architectures](https://github.com/Sakib1263/UNet2D-Segmentation-Model-Builder-KERAS/blob/main/Documents/Images/UNet.jpg "UNet Models")
-UNet to UNet++ Transformation Process  
+**UNet to UNet++ Transformation Process**  
 
 ## MultiResUNet
 MultiResUNet has an interesting Residual path for the skip connection and uses MultiRes Blocks instead of normal CNN blocks for deep learning. MultiResUNet model also uses Transposed Convolutions in the encoder by default instead of UpSampling.  
 ![MultiResUNet Architecture](https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-KERAS/blob/main/Documents/Images/MultiResUNet.png "MultiResUNet Model")
-MultiRes Block of MultiResUNet  
+**MultiRes Block of MultiResUNet**  
+
 Internal structure for the MultiResUNet block is shown below [4]. As it can be seen, the MultiRes Block goes through convolutions of different Kernel sizes, then concatenates in the end.  
 ![MultiResUNet Block](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/MultiRes%20Block.jpg "MultiResUNet Block")  
 Structure for the Residual Path (or ResPath) is shown below [4]. The Residual Path has multiple covolutions and additions over the skip conncetion, in place of UNet's direct skip connection or Residual path which gets concatenated directly.  
 ![Residual Path](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Residual_Path.jpg "Residual Path")
-Residual Path of MultiResUNet  
+**Residual Path of MultiResUNet**  
 
 ## Supported Features
 The speciality about this model is its flexibility, such as:
@@ -37,7 +38,7 @@ The speciality about this model is its flexibility, such as:
 
 Version 2 of all the networks (e.g., UNet_v2) uses Transposed Convolution [7] instead of UpSampling in the Decoder section. So, 'v2' of MultiResUNet is the original version proposed by the paper [4].  
 ![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions")
-Transposed Convolution  
+**Transposed Convolution**  
 
 
 Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder. **[The DEMO will be added soon for 1D and 2D]**
