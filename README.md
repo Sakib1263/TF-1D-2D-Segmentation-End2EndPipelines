@@ -16,10 +16,12 @@ As it can be seen, from UNet to UNet++, the models become more nested and denser
 ## MultiResUNet
 MultiResUNet has an interesting Residual path for the skip connection and uses MultiRes Blocks instead of normal CNN blocks for deep learning. MultiResUNet model also uses Transposed Convolutions in the encoder by default instead of UpSampling.  
 ![MultiResUNet Architecture](https://github.com/Sakib1263/UNet-2D-Segmentation-AutoEncoder-Model-Builder-KERAS/blob/main/Documents/Images/MultiResUNet.png "MultiResUNet Model")
-**MultiRes Block of MultiResUNet**  
+**MultiResUNet Architecture**  
 
 Internal structure for the MultiResUNet block is shown below [4]. As it can be seen, the MultiRes Block goes through convolutions of different Kernel sizes, then concatenates in the end.  
-![MultiResUNet Block](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/MultiRes%20Block.jpg "MultiResUNet Block")  
+![MultiResUNet Block](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/MultiRes%20Block.jpg "MultiResUNet Block")
+**MultiRes Block of MultiResUNet**  
+
 Structure for the Residual Path (or ResPath) is shown below [4]. The Residual Path has multiple covolutions and additions over the skip conncetion, in place of UNet's direct skip connection or Residual path which gets concatenated directly.  
 ![Residual Path](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Residual_Path.jpg "Residual Path")
 **Residual Path of MultiResUNet**  
