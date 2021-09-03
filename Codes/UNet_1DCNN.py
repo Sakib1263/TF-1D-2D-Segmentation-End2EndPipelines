@@ -1,6 +1,6 @@
 '''Author: Sakib Mahmud''' 
 '''MIT License'''
-'''Source: https://github.com/Sakib1263'''
+'''Source: https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras'''
 
 
 # Import Necessary Libraries
@@ -103,7 +103,7 @@ def ResPath(inputs, model_depth, model_width, kernel, multiplier):
 class UNet:
     # Version 2 (v2) of all Models use Transposed Convolution instead of UpSampling
     def __init__(self, length, model_depth, num_channel, model_width, kernel_size,
-                 problem_type='Regression', output_nums=1, ds=0, ae=0, *argv):
+                 problem_type='Regression', output_nums=1, ds=0, ae=0, alpha=1, feature_number=1024):
         # length: Input Signal Length
         # model_depth: Depth of the Model
         # model_width: Width of the Input Layer of the Model
@@ -124,19 +124,8 @@ class UNet:
         self.output_nums = output_nums
         self.D_S = ds
         self.A_E = ae
-        if len(argv) == 0 and ae == 1:
-            raise ValueError("Please Check the Input Parameters! Autoencoder mode was selected but arguments were not provided!")
-        elif len(argv) == 2 and ae == 0:
-            raise ValueError("Please Check the Input Parameters! Autoencoder mode was not selected but extra arguments were provided!")
-        elif len(argv) == 1 and ae == 1:
-            self.feature_number = argv[0]
-        elif len(argv) == 1 and ae == 0:
-            self.alpha = argv[0]  # Alpha parameter, only for MultiResUNet
-        elif len(argv) == 2 and ae == 1:
-            self.feature_number = argv[0]
-            self.alpha = argv[1]
-        elif len(argv) > 2:
-            raise ValueError("Please Check the Input Parameters! More than 2 optional arguments are not expected!")
+        self.alpha = alpha
+        self.feature_number = feature_number
 
     def UNet(self):
         """Variable UNet Model Design"""
