@@ -1,6 +1,6 @@
-'''Author: Sakib Mahmud''' 
-'''MIT License'''
-'''Source: https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras'''
+# Author: Sakib Mahmud
+# Source: https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras
+# MIT License
 
 
 # Import Necessary Libraries
@@ -8,7 +8,7 @@ import tensorflow as tf
 
 
 def Conv_Block(inputs, model_width, kernel, multiplier):
-    # 1D Convolutional Block
+    # 2D Convolutional Block
     x = tf.keras.layers.Conv2D(model_width * multiplier, kernel, padding='same')(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.Activation('relu')(x)
@@ -17,8 +17,8 @@ def Conv_Block(inputs, model_width, kernel, multiplier):
 
 
 def trans_conv2D(inputs, model_width, multiplier):
-    # 1D Transposed Convolutional Block, used instead of UpSampling
-    x = tf.keras.layers.Conv2DTranspose(model_width * multiplier, (2,2), strides=(2,2), padding='same')(inputs)  # Stride = 2, Kernel Size = 2
+    # 2D Transposed Convolutional Block, used instead of UpSampling
+    x = tf.keras.layers.Conv2DTranspose(model_width * multiplier, (2, 2), strides=(2, 2), padding='same')(inputs)  # Stride = 2, Kernel Size = 2
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.Activation('relu')(x)
 
@@ -35,7 +35,7 @@ def Concat_Block(input1, *argv):
 
 
 def upConv_Block(inputs):
-    # 1D UpSampling Block
+    # 2D UpSampling Block
     up = tf.keras.layers.UpSampling2D(size=(2, 2))(inputs)
 
     return up
@@ -52,7 +52,7 @@ def Feature_Extraction_Block(inputs, model_width, Dim2, feature_number):
 
 
 def MultiResBlock(inputs, model_width, kernel, multiplier, alpha):
-    ''' MultiRes Block'''
+    # MultiRes Block
     # U {int} -- Number of filters in a corrsponding UNet stage
     # inp {keras layer} -- input layer
 
@@ -75,7 +75,7 @@ def MultiResBlock(inputs, model_width, kernel, multiplier, alpha):
 
 
 def ResPath(inputs, model_depth, model_width, kernel, multiplier):
-    ''' ResPath '''
+    # ResPath
     # filters {int} -- [description]
     # length {int} -- length of ResPath
     # inp {keras layer} -- input layer
@@ -102,20 +102,22 @@ def ResPath(inputs, model_depth, model_width, kernel, multiplier):
 
 class UNet:
     # Version 2 (v2) of all Models use Transposed Convolution instead of UpSampling
-    def __init__(self, length, width, model_depth, num_channel, model_width, kernel_size,
-                 problem_type='Regression', output_nums=1, ds=0, ae=0, alpha=1, feature_number=1024):
-        # length: Input Image Length (x-dim)
-        # width: Input Image Width (y-dim) [Normally same as the x-dim i.e., Square shape]
+    def __init__(self, length, model_depth, num_channel, model_width, kernel_size, problem_type='Regression',
+                 output_nums=1, ds=0, ae=0, alpha=1, feature_number=1024, is_transconv=True):
+        # length: Input Signal Length
         # model_depth: Depth of the Model
-        # model_width: Width of the Model
-        # kernel_size: Kernel or Filter Size of the Input Convolutional Layer
-        # num_channel: Number of Channels of the Input Predictor Signals
-        # feature_number: Number of Features or Embeddings to be extracted from the AutoEncoder, only useful in the A_E Mode
+        # model_width: Width of the Input Layer of the Model
+        # num_channel: Number of Channels allowed by the Model
+        # kernel_size: Kernel or Filter Size of the Convolutional Layers
+        # problem_type: Classification (Binary or Multiclass) or Regression
+        # output_nums: Output Classes (Classification Mode) or Features (Regression Mode)
         # ds: Checks where Deep Supervision is active or not, either 0 or 1 [Default value set as 0]
         # ae: Enables or diables the AutoEncoder Mode, either 0 or 1 [Default value set as 0]
         # alpha: This Parameter is only for MultiResUNet, default value is 1
+        # feature_number: Number of Features or Embeddings to be extracted from the AutoEncoder in the A_E Mode
+        # is_transconv: (TRUE - Transposed Convolution, FALSE - UpSampling) in the Encoder Layer
+
         self.length = length
-        self.width = width
         self.model_depth = model_depth
         self.num_channel = num_channel
         self.model_width = model_width
@@ -126,27 +128,28 @@ class UNet:
         self.A_E = ae
         self.alpha = alpha
         self.feature_number = feature_number
+        self.is_transconv = is_transconv
 
     def UNet(self):
-        """Variable UNet Model Design"""
+        # Variable UNet Model Design
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
-            print("ERROR: Please Check the Values of the Input Parameters!")
+            raise ValueError("Please Check the Values of the Input Parameters!")
 
         convs = {}
         levels = []
         i = 1
 
         # Encoding
-        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = tf.keras.layers.MaxPooling2D(pool_size=2)(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(conv)
         convs["conv%s" % i] = conv
 
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = tf.keras.layers.MaxPooling2D(pool_size=2)(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -169,104 +172,38 @@ class UNet:
             level0 = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
             levels.append(level0)
         else:
-            print("ERROR: Please Check the Values of the Input Parameters!")
+            raise ValueError("Please Check the Values of the Input Parameters!")
 
         # Decoding
+        deconv = []
         convs_list = list(convs.values())
-        deconv = Conv_Block(Concat_Block(upConv_Block(conv), convs_list[self.model_depth - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - 1))
+        if self.is_transconv:
+            deconv = Concat_Block(trans_conv2D(conv, self.model_width, 2 ** (self.model_depth - 1)), convs_list[self.model_depth - 1])
+        elif not self.is_transconv:
+            deconv = Concat_Block(upConv_Block(conv), convs_list[self.model_depth - 1])
+
+        deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - 1))
         deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - 1))
 
         for j in range(1, self.model_depth):
             if self.D_S == 0:
-                deconv = Conv_Block(Concat_Block(upConv_Block(deconv), convs_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
+                if self.is_transconv:
+                    deconv = Concat_Block(trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)), convs_list[self.model_depth - j - 1])
+                elif not self.is_transconv:
+                    deconv = Concat_Block(upConv_Block(deconv), convs_list[self.model_depth - j - 1])
+                deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
                 deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
             elif self.D_S == 1:
                 level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth - j}')(deconv)
                 levels.append(level)
-                deconv = Conv_Block(Concat_Block(upConv_Block(deconv), convs_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
+                if self.is_transconv:
+                    deconv = Concat_Block(trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)), convs_list[self.model_depth - j - 1])
+                elif not self.is_transconv:
+                    deconv = Concat_Block(upConv_Block(deconv), convs_list[self.model_depth - j - 1])
+                deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
                 deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
             else:
-                print("ERROR: Please Check the Values of the Input Parameters!")
-
-        # Output
-        outputs = []
-        if self.problem_type == 'Classification':
-            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
-        elif self.problem_type == 'Regression':
-            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
-
-        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
-
-        if self.D_S == 1:
-            levels.append(outputs)
-            levels.reverse()
-            model = tf.keras.Model(inputs=[inputs], outputs=levels)
-
-        return model
-
-    def UNet_v2(self):
-        """Variable UNet Model Design - Version 2"""
-        if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
-            print("ERROR: Please Check the Values of the Input Parameters!")
-
-        convs = {}
-        levels = []
-        i = 1
-
-        # Encoding
-        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
-        conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
-        conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
-        convs["conv%s" % i] = conv
-
-        for i in range(2, (self.model_depth + 1)):
-            conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
-            convs["conv%s" % i] = conv
-
-        # Collect Latent Features or Embeddings from AutoEncoders
-        if (self.A_E == 0) and (self.D_S == 0):
-            conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-        elif (self.A_E == 0) and (self.D_S == 1):
-            conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            level0 = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
-            levels.append(level0)
-        elif (self.A_E == 1) and (self.D_S == 0):
-            latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
-            conv = Conv_Block(latent, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-        elif (self.A_E == 1) and (self.D_S == 1):
-            latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
-            conv = Conv_Block(latent, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            level0 = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(conv)
-            levels.append(level0)
-        else:
-            print("ERROR: Please Check the Values of the Input Parameters!")
-
-        # Decoding
-        convs_list = list(convs.values())
-        deconv = trans_conv2D(conv, self.model_width, 2 ** (self.model_depth - 1))
-        deconv = Conv_Block(Concat_Block(deconv, convs_list[self.model_depth - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - 1))
-        deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - 1))
-
-        for j in range(1, self.model_depth):
-            if self.D_S == 0:
-                deconv = trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1))
-                deconv = Conv_Block(Concat_Block(deconv, convs_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
-                deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
-            elif self.D_S == 1:
-                level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth - j}')(deconv)
-                levels.append(level)
-                deconv = trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1))
-                deconv = Conv_Block(Concat_Block(deconv, convs_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
-                deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
-            else:
-                print("ERROR: Please Check the Values of the Input Parameters!")
+                raise ValueError("ERROR: Please Check the Values of the Input Parameters!")
 
         # Output
         outputs = []
@@ -285,24 +222,24 @@ class UNet:
         return model
 
     def UNetE(self):
-        """Variable Ensemble UNet Model Design"""
+        # Variable Ensemble UNet Model Design
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
-            print("ERROR: Please Check the Values of the Input Parameters!")
+            raise ValueError("Please Check the Values of the Input Parameters!")
 
         convs = {}
         levels = []
         i = 1
 
         # Encoding
-        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(conv)
         convs["conv%s" % i] = conv
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -314,7 +251,7 @@ class UNet:
             conv = Conv_Block(latent, self.model_width, self.kernel_size, 2 ** self.model_depth)
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
         else:
-            print("ERROR: Please Check the Values of the Input Parameters!")
+            raise ValueError("Please Check the Values of the Input Parameters!")
 
         # Decoding
         convs_list = list(convs.values())
@@ -322,97 +259,32 @@ class UNet:
             level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(convs_list[0])
             levels.append(level)
 
+        deconv = []
         deconvs = {}
         for i in range(1, (self.model_depth + 1)):
             for j in range(0, (self.model_depth - i + 1)):
                 if (i == 1) and (j == (self.model_depth - 1)):
-                    deconv = Conv_Block(Concat_Block(convs_list[j], upConv_Block(conv)), self.model_width, self.kernel_size, 2 ** j)
+                    if self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], trans_conv2D(conv, self.model_width, 2 ** j))
+                    elif not self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], upConv_Block(conv))
+                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 elif (i == 1) and (j < (self.model_depth - 1)):
-                    deconv = Conv_Block(Concat_Block(convs_list[j], upConv_Block(convs_list[j + 1])), self.model_width, self.kernel_size, 2 ** j)
+                    if self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], trans_conv2D(convs_list[j + 1], self.model_width, 2 ** j))
+                    elif not self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], upConv_Block(convs_list[j + 1]))
+                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 elif i > 1:
-                    deconv = Conv_Block(Concat_Block(convs_list[j], upConv_Block(deconvs["deconv%s%s" % ((j + 1), (i - 1))])), self.model_width, self.kernel_size, 2 ** j)
+                    if self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], trans_conv2D(deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j))
+                    elif not self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], upConv_Block(deconvs["deconv%s%s" % ((j + 1), (i - 1))]))
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
-                    levels.append(level)
-
-        deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
-
-        # Output
-        outputs = []
-        if self.problem_type == 'Classification':
-            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
-        elif self.problem_type == 'Regression':
-            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
-
-        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
-
-        if self.D_S == 1:
-            levels.append(outputs)
-            levels.reverse()
-            model = tf.keras.Model(inputs=[inputs], outputs=levels)
-
-        return model
-
-    def UNetE_v2(self):
-        """Variable Ensemble UNet Model Design - Version 2"""
-        if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
-            print("ERROR: Please Check the Values of the Input Parameters!")
-
-        convs = {}
-        levels = []
-        i = 1
-
-        # Encoding
-        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
-        conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
-        conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
-        convs["conv%s" % i] = conv
-        for i in range(2, (self.model_depth + 1)):
-            conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
-            convs["conv%s" % i] = conv
-
-        # Collect Latent Features or Embeddings from AutoEncoders
-        if self.A_E == 0:
-            conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-        elif self.A_E == 1:
-            latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
-            conv = Conv_Block(latent, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-        else:
-            print("ERROR: Please Check the Values of the Input Parameters!")
-
-        # Decoding
-        convs_list = list(convs.values())
-        if self.D_S == 1:
-            level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(convs_list[0])
-            levels.append(level)
-
-        deconvs = {}
-        for i in range(1, (self.model_depth + 1)):
-            for j in range(0, (self.model_depth - i + 1)):
-                if (i == 1) and (j == (self.model_depth - 1)):
-                    deconv = trans_conv2D(conv, self.model_width, 2 ** j)
-                    deconv = Conv_Block(Concat_Block(convs_list[j], deconv), self.model_width, self.kernel_size, 2 ** j)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                elif (i == 1) and (j < (self.model_depth - 1)):
-                    deconv = trans_conv2D(convs_list[j + 1], self.model_width, 2 ** j)
-                    deconv = Conv_Block(Concat_Block(convs_list[j], deconv), self.model_width, self.kernel_size, 2 ** j)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                elif i > 1:
-                    deconv = trans_conv2D(deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j)
-                    deconv = Conv_Block(Concat_Block(convs_list[j], deconv), self.model_width, self.kernel_size, 2 ** j)
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
@@ -438,24 +310,24 @@ class UNet:
         return model
 
     def UNetP(self):
-        """Variable UNet+ Model Design"""
+        # Variable UNet+ Model Design
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
-            print("ERROR: Please Check the Values of the Input Parameters!")
+            raise ValueError("Please Check the Values of the Input Parameters!")
 
         convs = {}
         levels = []
         i = 1
 
         # Encoding
-        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(conv)
         convs["conv%s" % i] = conv
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -467,109 +339,44 @@ class UNet:
             conv = Conv_Block(latent, self.model_width, self.kernel_size, 2 ** self.model_depth)
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
         else:
-            print("ERROR: Please Check the Values of the Input Parameters!")
+            raise ValueError("Please Check the Values of the Input Parameters!")
 
         # Decoding
         convs_list = list(convs.values())
         if self.D_S == 1:
-            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
+            level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(convs_list[0])
             levels.append(level)
 
+        deconv = []
         deconvs = {}
         for i in range(1, (self.model_depth + 1)):
             for j in range(0, (self.model_depth - i + 1)):
                 if (i == 1) and (j == (self.model_depth - 1)):
-                    deconv = Conv_Block(Concat_Block(convs_list[j], upConv_Block(conv)), self.model_width, self.kernel_size, 2 ** j)
+                    if self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], trans_conv2D(conv, self.model_width, 2 ** j))
+                    elif not self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], upConv_Block(conv))
+                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 elif (i == 1) and (j < (self.model_depth - 1)):
-                    deconv = Conv_Block(Concat_Block(convs_list[j], upConv_Block(convs_list[j + 1])), self.model_width, self.kernel_size, 2 ** j)
+                    if self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], trans_conv2D(convs_list[j + 1], self.model_width, 2 ** j))
+                    elif not self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], upConv_Block(convs_list[j + 1]))
+                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 elif i > 1:
-                    deconv = Conv_Block(Concat_Block(deconvs["deconv%s%s" % (j, (i - 1))], upConv_Block(deconvs["deconv%s%s" % ((j + 1), (i - 1))])), self.model_width, self.kernel_size, 2 ** j)
+                    if self.is_transconv:
+                        deconv = Concat_Block(deconvs["deconv%s%s" % (j, (i - 1))], trans_conv2D(deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j))
+                    elif not self.is_transconv:
+                        deconv = Concat_Block(deconvs["deconv%s%s" % (j, (i - 1))], upConv_Block(deconvs["deconv%s%s" % ((j + 1), (i - 1))]))
+                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
-                    levels.append(level)
-
-        deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
-
-        # Output
-        outputs = []
-        if self.problem_type == 'Classification':
-            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
-        elif self.problem_type == 'Regression':
-            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
-
-        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
-
-        if self.D_S == 1:
-            levels.append(outputs)
-            levels.reverse()
-            model = tf.keras.Model(inputs=[inputs], outputs=levels)
-
-        return model
-
-    def UNetP_v2(self):
-        """Variable UNet+ Model Design - Version 2"""
-        if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
-            print("ERROR: Please Check the Values of the Input Parameters!")
-
-        convs = {}
-        levels = []
-        i = 1
-
-        # Encoding
-        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
-        conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
-        conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
-        convs["conv%s" % i] = conv
-        for i in range(2, (self.model_depth + 1)):
-            conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
-            convs["conv%s" % i] = conv
-
-        # Collect Latent Features or Embeddings from AutoEncoders
-        if self.A_E == 0:
-            conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-        elif self.A_E == 1:
-            latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
-            conv = Conv_Block(latent, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-        else:
-            print("ERROR: Please Check the Values of the Input Parameters!")
-
-        # Decoding
-        convs_list = list(convs.values())
-        if self.D_S == 1:
-            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
-            levels.append(level)
-
-        deconvs = {}
-        for i in range(1, (self.model_depth + 1)):
-            for j in range(0, (self.model_depth - i + 1)):
-                if (i == 1) and (j == (self.model_depth - 1)):
-                    deconv = trans_conv2D(conv, self.model_width, 2 ** j)
-                    deconv = Conv_Block(Concat_Block(convs_list[j], deconv), self.model_width, self.kernel_size, 2 ** j)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                elif (i == 1) and (j < (self.model_depth - 1)):
-                    deconv = trans_conv2D(convs_list[j + 1], self.model_width, 2 ** j)
-                    deconv = Conv_Block(Concat_Block(convs_list[j], deconv), self.model_width, self.kernel_size, 2 ** j)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                elif i > 1:
-                    deconv = trans_conv2D(deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j)
-                    deconv = Conv_Block(Concat_Block(deconvs["deconv%s%s" % (j, (i - 1))], deconv), self.model_width, self.kernel_size, 2 ** j)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
+                    level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
                     levels.append(level)
 
         deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
@@ -593,22 +400,22 @@ class UNet:
     def UNetPP(self):
         """Variable UNet++ Model Design"""
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
-            print("ERROR: Please Check the Values of the Input Parameters!")
+            raise ValueError("Please Check the Values of the Input Parameters!")
 
         convs = {}
         levels = []
         i = 1
 
         # Encoding
-        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.num_channel))
         conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(conv)
         convs["conv%s" % i] = conv
         for i in range(2, (self.model_depth + 1)):
             conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(conv)
             convs["conv%s" % i] = conv
 
         # Collect Latent Features or Embeddings from AutoEncoders
@@ -620,23 +427,32 @@ class UNet:
             conv = Conv_Block(latent, self.model_width, self.kernel_size, 2 ** self.model_depth)
             conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
         else:
-            print("ERROR: Please Check the Values of the Input Parameters!")
+            raise ValueError("Please Check the Values of the Input Parameters!")
 
         # Decoding
         convs_list = list(convs.values())
         if self.D_S == 1:
-            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
+            level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(convs_list[0])
             levels.append(level)
 
+        deconv = []
         deconvs = {}
         for i in range(1, (self.model_depth + 1)):
             for j in range(0, (self.model_depth - i + 1)):
                 if (i == 1) and (j == (self.model_depth - 1)):
-                    deconv = Conv_Block(Concat_Block(convs_list[j], upConv_Block(conv)), self.model_width, self.kernel_size, 2 ** j)
+                    if self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], trans_conv2D(conv, self.model_width, 2 ** j))
+                    elif not self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], upConv_Block(conv))
+                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 elif (i == 1) and (j < (self.model_depth - 1)):
-                    deconv = Conv_Block(Concat_Block(convs_list[j], upConv_Block(convs_list[j + 1])), self.model_width, self.kernel_size, 2 ** j)
+                    if self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], trans_conv2D(convs_list[j + 1], self.model_width, 2 ** j))
+                    elif not self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], upConv_Block(convs_list[j + 1]))
+                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 elif i > 1:
@@ -644,93 +460,15 @@ class UNet:
                     for k in range(2, i):
                         deconv_temp = deconvs["deconv%s%s" % (j, k)]
                         deconv_tot = Concat_Block(deconv_tot, deconv_temp)
-                    deconv = Conv_Block(Concat_Block(convs_list[j], deconv_tot, upConv_Block(deconvs["deconv%s%s" % ((j + 1), (i - 1))])), self.model_width, self.kernel_size, 2 ** j)
+                    if self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], deconv_tot, trans_conv2D(deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j))
+                    elif not self.is_transconv:
+                        deconv = Concat_Block(convs_list[j], deconv_tot, upConv_Block(deconvs["deconv%s%s" % ((j + 1), (i - 1))]))
+                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
                     deconvs["deconv%s%s" % (j, i)] = deconv
                 if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
-                    levels.append(level)
-
-        deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
-
-        # Output
-        outputs = []
-        if self.problem_type == 'Classification':
-            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
-        elif self.problem_type == 'Regression':
-            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
-
-        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
-
-        if self.D_S == 1:
-            levels.append(outputs)
-            levels.reverse()
-            model = tf.keras.Model(inputs=[inputs], outputs=levels)
-
-        return model
-
-    def UNetPP_v2(self):
-        """Variable UNet++ Model Design - Version 2"""
-        if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
-            print("ERROR: Please Check the Values of the Input Parameters!")
-
-        convs = {}
-        levels = []
-        i = 1
-
-        # Encoding
-        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
-        conv = Conv_Block(inputs, self.model_width, self.kernel_size, 2 ** 0)
-        conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** 0)
-        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
-        convs["conv%s" % i] = conv
-        for i in range(2, (self.model_depth + 1)):
-            conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** (i - 1))
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** (i - 1))
-            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(conv)
-            convs["conv%s" % i] = conv
-
-        # Collect Latent Features or Embeddings from AutoEncoders
-        if self.A_E == 0:
-            conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-        elif self.A_E == 1:
-            latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
-            conv = Conv_Block(latent, self.model_width, self.kernel_size, 2 ** self.model_depth)
-            conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
-        else:
-            print("ERROR: Please Check the Values of the Input Parameters!")
-
-        # Decoding
-        convs_list = list(convs.values())
-        if self.D_S == 1:
-            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(convs_list[0])
-            levels.append(level)
-
-        deconvs = {}
-        for i in range(1, (self.model_depth + 1)):
-            for j in range(0, (self.model_depth - i + 1)):
-                if (i == 1) and (j == (self.model_depth - 1)):
-                    deconv = trans_conv2D(conv, self.model_width, 2 ** j)
-                    deconv = Conv_Block(Concat_Block(convs_list[j], deconv), self.model_width, self.kernel_size, 2 ** j)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                elif (i == 1) and (j < (self.model_depth - 1)):
-                    deconv = trans_conv2D(convs_list[j + 1], self.model_width, 2 ** j)
-                    deconv = Conv_Block(Concat_Block(convs_list[j], deconv), self.model_width, self.kernel_size, 2 ** j)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                elif i > 1:
-                    deconv_tot = deconvs["deconv%s%s" % (j, 1)]
-                    for k in range(2, i):
-                        deconv_temp = deconvs["deconv%s%s" % (j, k)]
-                        deconv_tot = Concat_Block(deconv_tot, deconv_temp)
-                    deconv = trans_conv2D(deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j)
-                    deconv = Conv_Block(Concat_Block(convs_list[j], deconv_tot, deconv), self.model_width, self.kernel_size, 2 ** j)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                if (self.D_S == 1) and (j == 0) and (i < self.model_depth):
-                    level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
+                    level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth - i}')(deconvs["deconv%s%s" % (j, i)])
                     levels.append(level)
 
         deconv = deconvs["deconv%s%s" % (0, self.model_depth)]
@@ -752,31 +490,31 @@ class UNet:
         return model
 
     def MultiResUNet(self):
-        ''' 1D MultiResUNet with an option for Deep Supervision and/or being used as an AutoEncoder '''
+        # 2D MultiResUNet with an option for Deep Supervision and/or being used as an AutoEncoder
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
-            print("ERROR: Please Check the Values of the Input Parameters!")
+            raise ValueError("Please Check the Values of the Input Parameters!")
 
         mresblocks = {}
         levels = []
         i = 1
 
         # Encoding
-        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
+        inputs = tf.keras.Input((self.length, self.num_channel))
         mresblock = MultiResBlock(inputs, self.model_width, self.kernel_size, 2 ** 0, self.alpha)
-        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(mresblock)
+        pool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(mresblock)
         mresblocks["mres%s" % i] = ResPath(mresblock, self.model_depth, self.model_width, self.kernel_size, 2 ** 0)
 
         for i in range(2, (self.model_depth + 1)):
             mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** (i - 1), self.alpha)
-            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(mresblock)
-            mresblocks["mres%s" % i] = ResPath(mresblock, (self.model_depth- i + 1), self.model_width, self.kernel_size, 2 ** (i - 1))
+            pool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(mresblock)
+            mresblocks["mres%s" % i] = ResPath(mresblock, (self.model_depth - i + 1), self.model_width, self.kernel_size, 2 ** (i - 1))
 
         # Collect Latent Features or Embeddings from AutoEncoders
         if (self.A_E == 0) and (self.D_S == 0):
             mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
         elif (self.A_E == 0) and (self.D_S == 1):
             mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
-            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
+            level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(mresblock)
             levels.append(level)
         elif (self.A_E == 1) and (self.D_S == 0):
             latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
@@ -784,94 +522,37 @@ class UNet:
         elif (self.A_E == 1) and (self.D_S == 1):
             latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
             mresblock = MultiResBlock(latent, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
-            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
+            level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth}')(mresblock)
             levels.append(level)
         else:
-            print("ERROR: Please Check the Values of the Input Parameters!")
+            raise ValueError("Please Check the Values of the Input Parameters!")
 
         # Decoding
-
+        deconv = []
         mresblocks_list = list(mresblocks.values())
-        deconv = MultiResBlock(Concat_Block(upConv_Block(mresblock), mresblocks_list[self.model_depth - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - 1), self.alpha)
+        if self.is_transconv:
+            deconv = Concat_Block(trans_conv2D(mresblock, self.model_width, 2 ** (self.model_depth - 1)), mresblocks_list[self.model_depth - 1])
+        elif not self.is_transconv:
+            deconv = Concat_Block(upConv_Block(mresblock), mresblocks_list[self.model_depth - 1])
+        deconv = MultiResBlock(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - 1), self.alpha)
 
         for j in range(1, self.model_depth):
             if self.D_S == 0:
-                deconv = MultiResBlock(Concat_Block(upConv_Block(deconv), mresblocks_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
+                if self.is_transconv:
+                    deconv = Concat_Block(trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)), mresblocks_list[self.model_depth - j - 1])
+                elif not self.is_transconv:
+                    deconv = Concat_Block(upConv_Block(deconv), mresblocks_list[self.model_depth - j - 1])
+                deconv = MultiResBlock(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
             elif self.D_S == 1:
-                level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - j}')(deconv)
+                level = tf.keras.layers.Conv2D(1, (1, 1), name=f'level{self.model_depth - j}')(deconv)
                 levels.append(level)
-                deconv = MultiResBlock(Concat_Block(upConv_Block(deconv), mresblocks_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
+                if self.is_transconv:
+                    deconv = Concat_Block(trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)), mresblocks_list[self.model_depth - j - 1])
+                elif not self.is_transconv:
+                    deconv = Concat_Block(upConv_Block(deconv), mresblocks_list[self.model_depth - j - 1])
+                deconv = MultiResBlock(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
             else:
-                print("ERROR: Please Check the Values of the Input Parameters!")
-
-        # Output
-        outputs = []
-        if self.problem_type == 'Classification':
-            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='softmax', name="out")(deconv)
-        elif self.problem_type == 'Regression':
-            outputs = tf.keras.layers.Conv2D(self.output_nums, (1, 1), activation='linear', name="out")(deconv)
-
-        model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
-
-        if self.D_S == 1:
-            levels.append(outputs)
-            levels.reverse()
-            model = tf.keras.Model(inputs=[inputs], outputs=levels)
-
-        return model
-
-    def MultiResUNet_v2(self):
-        ''' 1D MultiResUNet with an option for Deep Supervision and/or being used as an AutoEncoder - Version 2'''
-        if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
-            print("ERROR: Please Check the Values of the Input Parameters!")
-
-        mresblocks = {}
-        levels = []
-        i = 1
-
-        # Encoding
-        inputs = tf.keras.Input((self.length, self.width, self.num_channel))
-        mresblock = MultiResBlock(inputs, self.model_width, self.kernel_size, 2 ** 0, self.alpha)
-        pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(mresblock)
-        mresblocks["mres%s" % i] = ResPath(mresblock, self.model_depth, self.model_width, self.kernel_size, 2 ** 0)
-
-        for i in range(2, (self.model_depth + 1)):
-            mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** (i - 1), self.alpha)
-            pool = tf.keras.layers.MaxPooling2D(pool_size=(2,2))(mresblock)
-            mresblocks["mres%s" % i] = ResPath(mresblock, (self.model_depth- i + 1), self.model_width, self.kernel_size, 2 ** (i - 1))
-
-        # Collect Latent Features or Embeddings from AutoEncoders
-        if (self.A_E == 0) and (self.D_S == 0):
-            mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
-        elif (self.A_E == 0) and (self.D_S == 1):
-            mresblock = MultiResBlock(pool, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
-            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
-            levels.append(level)
-        elif (self.A_E == 1) and (self.D_S == 0):
-            latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
-            mresblock = MultiResBlock(latent, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
-        elif (self.A_E == 1) and (self.D_S == 1):
-            latent = Feature_Extraction_Block(pool, self.model_width, int(self.length / (2 ** self.model_depth)), self.feature_number)
-            mresblock = MultiResBlock(latent, self.model_width, self.kernel_size, 2 ** self.model_depth, self.alpha)
-            level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth}')(mresblock)
-            levels.append(level)
-        else:
-            print("ERROR: Please Check the Values of the Input Parameters!")
-
-        # Decoding
-
-        mresblocks_list = list(mresblocks.values())
-        deconv = MultiResBlock(Concat_Block(trans_conv2D(mresblock, self.model_width, 2 ** (self.model_depth - 1)), mresblocks_list[self.model_depth - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - 1), self.alpha)
-
-        for j in range(1, self.model_depth):
-            if self.D_S == 0:
-                deconv = MultiResBlock(Concat_Block(trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)), mresblocks_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
-            elif self.D_S == 1:
-                level = tf.keras.layers.Conv2D(1, (1,1), name=f'level{self.model_depth - j}')(deconv)
-                levels.append(level)
-                deconv = MultiResBlock(Concat_Block(trans_conv2D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)), mresblocks_list[self.model_depth - j - 1]), self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
-            else:
-                print("ERROR: Please Check the Values of the Input Parameters!")
+                raise ValueError("Please Check the Values of the Input Parameters!")
 
         # Output
         outputs = []
