@@ -101,7 +101,6 @@ def ResPath(inputs, model_depth, model_width, kernel, multiplier):
 
 
 class UNet:
-    # Version 2 (v2) of all Models use Transposed Convolution instead of UpSampling
     def __init__(self, length, model_depth, num_channel, model_width, kernel_size, problem_type='Regression',
                  output_nums=1, ds=0, ae=0, alpha=1, feature_number=1024, is_transconv=True):
         # length: Input Signal Length
