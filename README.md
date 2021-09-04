@@ -37,7 +37,7 @@ The speciality about this model is its flexibility, such as:
 7. Number of classes for Classification tasks and number of extracted features for Regression tasks can be varied.
 8. Number of Channels in the Input Dataset can be varied.  
 9. In case of only MultiResUNet, its 'alpha' parameter can be varied (default set to 1.0) [4].  
-10. All the networks uses Transposed Convolution [7] by default (instead of UpSampling) in the Decoder section, which can be turned off to use traditional UpSampling.  
+10. All the networks use Transposed Convolution [7] by default (instead of UpSampling) in the Decoder section, which can be turned off to use traditional UpSampling.  
 
 ![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions")  
 **Transposed Convolution**  
