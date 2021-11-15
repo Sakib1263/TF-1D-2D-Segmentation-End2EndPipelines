@@ -32,12 +32,13 @@ The speciality about this model is its flexibility, such as:
 2. The models can be used for Binary or Multi-Class Classification, or Regression type Segmentation tasks.
 3. The models allow Deep Supervision [5] with flexibility during Segmentation.
 4. The segmentation models can also be used as Autoencoders [6] for Feature Extraction.
-5. The depth of all the models can be varied to form very shallow to very deep networks.
-6. Number of input kernel/filter, commonly known as Width of the model can be varied.
-7. Number of classes for Classification tasks and number of extracted features for Regression tasks can be varied.
-8. Number of Channels in the Input Dataset can be varied.  
-9. In case of only MultiResUNet, its 'alpha' parameter can be varied (default set to 1.0) [4].  
-10. All the networks use Transposed Convolution [7] by default (instead of UpSampling) in the Decoder section, which can be turned off to use traditional UpSampling.  
+5. The segmentation models can also be implemented with Guided Attention.
+6. The depth of all the models can be varied to form very shallow to very deep networks.
+7. Number of input kernel/filter, commonly known as Width of the model can be varied.
+8. Number of classes for Classification tasks and number of extracted features for Regression tasks can be varied.
+9. Number of Channels in the Input Dataset can be varied.  
+10. In case of only MultiResUNet, its 'alpha' parameter can be varied (default set to 1.0) [4].  
+11. All the networks use Transposed Convolution [7] by default (instead of UpSampling) in the Decoder section, which can be turned off to use traditional UpSampling.  
 
 ![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions")  
 **Transposed Convolution**  
