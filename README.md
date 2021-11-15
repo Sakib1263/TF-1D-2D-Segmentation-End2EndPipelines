@@ -32,7 +32,7 @@ The speciality about this model is its flexibility, such as:
 2. The models can be used for Binary or Multi-Class Classification, or Regression type Segmentation tasks.
 3. The models allow Deep Supervision [5] with flexibility during Segmentation.
 4. The segmentation models can also be used as Autoencoders [6] for Feature Extraction.
-5. The segmentation models can also be implemented with Guided Attention.
+5. The segmentation models can also be implemented with Guided Attention [8].
 6. The depth of all the models can be varied to form very shallow to very deep networks.
 7. Number of input kernel/filter, commonly known as Width of the model can be varied.
 8. Number of classes for Classification tasks and number of extracted features for Regression tasks can be varied.
@@ -54,3 +54,4 @@ Details of the process are available in the DEMO provided in the codes section. 
 **[5]** Wang, L., Lee, C., Tu, Z., & Lazebnik, S. (2021). Training Deeper Convolutional Networks with Deep Supervision. arXiv.org. Retrieved 30 August 2021, from https://arxiv.org/abs/1505.02496.  
 **[6]** Chang, H. (2021). A Method of Brain Image Optimization based on an Autoencoder Unet. Journal Of Physics: Conference Series, 1952(2), 022064. https://doi.org/10.1088/1742-6596/1952/2/022064  
 **[7]** Transposed Convolution Demystified. Medium. (2021). Retrieved 1 September 2021, from https://towardsdatascience.com/transposed-convolution-demystified-84ca81b4baba.  
+**[8]** Li, K., Wu, Z., Peng, K., Ernst, J. and Fu, Y., 2021. Tell Me Where to Look: Guided Attention Inference Network. [online] arXiv.org. Available at: <https://arxiv.org/abs/1802.10171>.  
