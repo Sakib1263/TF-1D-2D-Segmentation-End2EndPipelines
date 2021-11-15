@@ -524,9 +524,9 @@ class UNet:
                 level = tf.keras.layers.Conv1D(1, 1, name=f'level{self.model_depth - j}')(deconv)
                 levels.append(level)
             if self.is_transconv:
-                deconv = Concat_Block(trans_conv1D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)), skip_connection)
+                deconv = Concat_Block(skip_connection, trans_conv1D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)))
             elif not self.is_transconv:
-                deconv = Concat_Block(upConv_Block(deconv), skip_connection)
+                deconv = Concat_Block(skip_connection, upConv_Block(deconv))
             deconv = MultiResBlock(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1), self.alpha)
 
         # Output
