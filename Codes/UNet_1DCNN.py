@@ -190,7 +190,7 @@ class UNet:
             if self.is_transconv:
                 deconv = Concat_Block(trans_conv1D(deconv, self.model_width, 2 ** (self.model_depth - j - 1)), skip_connection)
             elif not self.is_transconv:
-                deconv = Concat_Block(upConv_Block(deconv), convs_list[self.model_depth - j - 1])
+                deconv = Concat_Block(upConv_Block(deconv), skip_connection)
             deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
             deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
 
