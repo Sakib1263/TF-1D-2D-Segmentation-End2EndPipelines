@@ -43,6 +43,8 @@ The speciality about this model is its flexibility, such as:
 ![Transposed Convolutions](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/Transposed_Convolution.png "Transposed Convolutions")  
 **Transposed Convolution**  
 
+![Attention_UNet](https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras/blob/main/Documents/Images/AttentionUNet.png "Attention_UNet")  
+**Attention Guided UNet**  
 
 Details of the process are available in the DEMO provided in the codes section. The datasets used in the DEMO as also available in the 'Documents' folder. **[The DEMO will be added soon for 1D and 2D]**
 
