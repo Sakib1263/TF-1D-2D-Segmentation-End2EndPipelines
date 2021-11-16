@@ -1,8 +1,3 @@
-# Author: Sakib Mahmud
-# Source: https://github.com/Sakib1263/UNet-Segmentation-AutoEncoder-1D-2D-Tensorflow-Keras
-# MIT License
-
-
 # Import Necessary Libraries
 import tensorflow as tf
 
@@ -52,7 +47,7 @@ def Feature_Extraction_Block(inputs, model_width, feature_number):
     return latent
 
 
-def Attention_Block(skip_connection, gating_signal, num_filters, multiplier, is_transconv):
+def Attention_Block(skip_connection, gating_signal, num_filters, multiplier):
     # Attention Block
     conv1x1_1 = tf.keras.layers.Conv1D(num_filters*multiplier, 1, strides=2)(skip_connection)
     conv1x1_1 = tf.keras.layers.BatchNormalization()(conv1x1_1)
@@ -63,11 +58,10 @@ def Attention_Block(skip_connection, gating_signal, num_filters, multiplier, is_
     conv1_2 = tf.keras.layers.Conv1D(1, 1, strides=1)(conv1_2)
     conv1_2 = tf.keras.layers.BatchNormalization()(conv1_2)
     conv1_2 = tf.keras.layers.Activation('sigmoid')(conv1_2)
-    resampler = upConv_Block(conv1_2)
-    if is_transconv:
-        resampler = trans_conv1D(conv1_2, num_filters, multiplier)
-
-    out = skip_connection*resampler
+    resampler1 = upConv_Block(conv1_2)
+    resampler2 = trans_conv1D(conv1_2, 1, 1)
+    resampler = tf.keras.layers.add([resampler1, resampler2])
+    out = skip_connection * resampler
 
     return out
 
@@ -134,7 +128,6 @@ class UNet:
         # ds: Checks where Deep Supervision is active or not, either 0 or 1 [Default value set as 0]
         # ae: Enables or diables the AutoEncoder Mode, either 0 or 1 [Default value set as 0]
         # ag: Checks where Attention Guided is active or not, either 0 or 1 [Default value set as 0]
-        # alpha: This Parameter is only for MultiResUNet, default value is 1
         # feature_number: Number of Features or Embeddings to be extracted from the AutoEncoder in the A_E Mode
         # is_transconv: (TRUE - Transposed Convolution, FALSE - UpSampling) in the Encoder Layer
         self.length = length
@@ -182,7 +175,7 @@ class UNet:
         for j in range(0, self.model_depth):
             skip_connection = convs_list[self.model_depth - j - 1]
             if self.A_G == 1:
-                skip_connection = Attention_Block(convs_list[self.model_depth - j - 1], deconv, self.model_width, 2 ** (self.model_depth - j - 1), self.is_transconv)
+                skip_connection = Attention_Block(convs_list[self.model_depth - j - 1], deconv, self.model_width, 2 ** (self.model_depth - j - 1))
             if self.D_S == 1:
                 # For Deep Supervision
                 level = tf.keras.layers.Conv1D(1, 1, name=f'level{self.model_depth - j}')(deconv)
@@ -249,7 +242,7 @@ class UNet:
                 if (i == 1) and (j == (self.model_depth - 1)):
                     skip_connection = convs_list[j]
                     if self.A_G == 1:
-                        skip_connection = Attention_Block(convs_list[j], conv, self.model_width, 2 ** j, self.is_transconv)
+                        skip_connection = Attention_Block(convs_list[j], conv, self.model_width, 2 ** j)
                     if self.is_transconv:
                         deconv = Concat_Block(skip_connection, trans_conv1D(conv, self.model_width, 2 ** j))
                     elif not self.is_transconv:
@@ -260,7 +253,7 @@ class UNet:
                 elif (i == 1) and (j < (self.model_depth - 1)):
                     skip_connection = convs_list[j]
                     if self.A_G == 1:
-                        skip_connection = Attention_Block(convs_list[j], convs_list[j + 1], self.model_width, 2 ** j, self.is_transconv)
+                        skip_connection = Attention_Block(convs_list[j], convs_list[j + 1], self.model_width, 2 ** j)
                     if self.is_transconv:
                         deconv = Concat_Block(skip_connection, trans_conv1D(convs_list[j + 1], self.model_width, 2 ** j))
                     elif not self.is_transconv:
@@ -271,7 +264,7 @@ class UNet:
                 elif i > 1:
                     skip_connection = convs_list[j]
                     if self.A_G == 1:
-                        skip_connection = Attention_Block(convs_list[j], deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j, self.is_transconv)
+                        skip_connection = Attention_Block(convs_list[j], deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j)
                     if self.is_transconv:
                         deconv = Concat_Block(skip_connection, trans_conv1D(deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j))
                     elif not self.is_transconv:
@@ -339,7 +332,7 @@ class UNet:
                 if (i == 1) and (j == (self.model_depth - 1)):
                     skip_connection = convs_list[j]
                     if self.A_G == 1:
-                        skip_connection = Attention_Block(convs_list[j], conv, self.model_width, 2 ** j, self.is_transconv)
+                        skip_connection = Attention_Block(convs_list[j], conv, self.model_width, 2 ** j)
                     if self.is_transconv:
                         deconv = Concat_Block(skip_connection, trans_conv1D(conv, self.model_width, 2 ** j))
                     elif not self.is_transconv:
@@ -350,7 +343,7 @@ class UNet:
                 elif (i == 1) and (j < (self.model_depth - 1)):
                     skip_connection = convs_list[j]
                     if self.A_G == 1:
-                        skip_connection = Attention_Block(convs_list[j], convs_list[j + 1], self.model_width, 2 ** j, self.is_transconv)
+                        skip_connection = Attention_Block(convs_list[j], convs_list[j + 1], self.model_width, 2 ** j)
                     if self.is_transconv:
                         deconv = Concat_Block(skip_connection, trans_conv1D(convs_list[j + 1], self.model_width, 2 ** j))
                     elif not self.is_transconv:
@@ -361,7 +354,7 @@ class UNet:
                 elif i > 1:
                     skip_connection = deconvs["deconv%s%s" % (j, (i - 1))]
                     if self.A_G == 1:
-                        skip_connection = Attention_Block(deconvs["deconv%s%s" % (j, (i - 1))], deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j, self.is_transconv)
+                        skip_connection = Attention_Block(deconvs["deconv%s%s" % (j, (i - 1))], deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j)
                     if self.is_transconv:
                         deconv = Concat_Block(skip_connection, trans_conv1D(deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j))
                     elif not self.is_transconv:
@@ -429,7 +422,7 @@ class UNet:
                 if (i == 1) and (j == (self.model_depth - 1)):
                     skip_connection = convs_list[j]
                     if self.A_G == 1:
-                        skip_connection = Attention_Block(convs_list[j], conv, self.model_width, 2 ** j, self.is_transconv)
+                        skip_connection = Attention_Block(convs_list[j], conv, self.model_width, 2 ** j)
                     if self.is_transconv:
                         deconv = Concat_Block(skip_connection, trans_conv1D(conv, self.model_width, 2 ** j))
                     elif not self.is_transconv:
@@ -440,7 +433,7 @@ class UNet:
                 elif (i == 1) and (j < (self.model_depth - 1)):
                     skip_connection = convs_list[j]
                     if self.A_G == 1:
-                        skip_connection = Attention_Block(convs_list[j], convs_list[j + 1], self.model_width, 2 ** j, self.is_transconv)
+                        skip_connection = Attention_Block(convs_list[j], convs_list[j + 1], self.model_width, 2 ** j)
                     if self.is_transconv:
                         deconv = Concat_Block(skip_connection, trans_conv1D(convs_list[j + 1], self.model_width, 2 ** j))
                     elif not self.is_transconv:
@@ -451,15 +444,15 @@ class UNet:
                 elif i > 1:
                     deconv_tot = deconvs["deconv%s%s" % (j, 1)]
                     if self.A_G == 1:
-                        deconv_tot = Attention_Block(deconv_tot, deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j, self.is_transconv)
+                        deconv_tot = Attention_Block(deconv_tot, deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j)
                     for k in range(2, i):
                         deconv_temp = deconvs["deconv%s%s" % (j, k)]
                         if self.A_G == 1:
-                            deconv_temp = Attention_Block(deconv_temp, deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j, self.is_transconv)
+                            deconv_temp = Attention_Block(deconv_temp, deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j)
                         deconv_tot = Concat_Block(deconv_tot, deconv_temp)
                     skip_connection = convs_list[j]
                     if self.A_G == 1:
-                        skip_connection = Attention_Block(convs_list[j], deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j, self.is_transconv)
+                        skip_connection = Attention_Block(convs_list[j], deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j)
                     if self.is_transconv:
                         deconv = Concat_Block(skip_connection, deconv_tot, trans_conv1D(deconvs["deconv%s%s" % ((j + 1), (i - 1))], self.model_width, 2 ** j))
                     elif not self.is_transconv:
@@ -519,7 +512,7 @@ class UNet:
         for j in range(0, self.model_depth):
             skip_connection = mresblocks_list[self.model_depth - j - 1]
             if self.A_G == 1:
-                skip_connection = Attention_Block(mresblocks_list[self.model_depth - j - 1], deconv, self.model_width, 2 ** (self.model_depth - j - 1), self.is_transconv)
+                skip_connection = Attention_Block(mresblocks_list[self.model_depth - j - 1], deconv, self.model_width, 2 ** (self.model_depth - j - 1))
             if self.D_S == 1:
                 level = tf.keras.layers.Conv1D(1, 1, name=f'level{self.model_depth - j}')(deconv)
                 levels.append(level)
@@ -548,12 +541,12 @@ class UNet:
 
 if __name__ == '__main__':
     # Configurations
-    signal_length = 1024  # Length of each Segment
+    length = 1024  # Length of each Segment
     model_name = 'UNet'  # UNet or UNetPP
     model_depth = 5  # Number of Level in the CNN Model
     model_width = 64  # Width of the Initial Layer, subsequent layers start from here
     kernel_size = 3  # Size of the Kernels/Filter
-    num_channel = 4  # Number of Channels in the Model
+    num_channel = 1  # Number of Channels in the Model
     D_S = 1  # Turn on Deep Supervision
     A_E = 0  # Turn on AutoEncoder Mode for Feature Extraction
     A_G = 1  # Turn on for Guided Attention
@@ -565,6 +558,6 @@ if __name__ == '__main__':
     '''Only required for MultiResUNet'''
     alpha = 1  # Model Width Expansion Parameter, for MultiResUNet only
     #
-    Model = UNet(signal_length, model_depth, num_channel, model_width, kernel_size, problem_type=problem_type, output_nums=output_nums, ds=D_S, ae=A_E, ag=A_G, alpha=alpha, is_transconv=is_transconv).UNet()
+    Model = UNet(length, model_depth, num_channel, model_width, kernel_size, problem_type=problem_type, output_nums=output_nums, ds=D_S, ae=A_E, ag=A_G, alpha=alpha, is_transconv=is_transconv).UNet()
     Model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0003), loss=tf.keras.losses.MeanAbsoluteError(), metrics=tf.keras.metrics.MeanSquaredError())
     Model.summary()
