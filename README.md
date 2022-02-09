@@ -1,12 +1,20 @@
-# UNet-Model-Builder-Tensorflow-Keras
-This repository contains 1D and 2D Signal Segmentation Model Builder for UNet and several of its variants developed in Tensorflow-Keras. The code supports Deep Supervision, Autoencoder mode and other options explained in the DEMO. The segmentation models can be used for binary or multiclass segmentation, or for regression tasks.  
+# Segmentation-Model-Builder-Tensorflow-Keras
+This repository contains 1D and 2D Signal Segmentation Model Builder for UNet, several of its variants and other models developed in Tensorflow-Keras. The code supports Deep Supervision, Autoencoder mode, Guided Attention, Bi-Directional Convolutional LSTM and other options explained in the codes and demos. The segmentation models can be used for binary or multiclass segmentation, or for regression tasks.  
 
 ## Models supported
 1. **UNet** [1]
 2. **UNet Ensembled (UNetE)** [2]
 3. **UNet+ (UNetP)** [2]
-3. **UNet++ (UNetPP)** [3]
+4. **UNet++ (UNetPP)** [3]
 5. **MultiResUNet** [4]
+6. **DenseInseptionUNet** []
+7. **Feature Pyramid Network (FPN)** []
+8. **Pyramid Spatial Pooling (PSP) Net** []
+9. **AlbUNet** []
+10. **TernausUNet** []
+11. **BCDUNet** []
+12. **SEDUNet or MGCUNet** []
+13. **IBAUNet** []
 
 ## UNet to UNet++
 As it can be seen, from UNet to UNet++, the models become more nested and denser (so heavier i.e., more parameters). UNet++ is like a combination of UNetE and UNet+. Normally users do not try UNet+ or UNetE. But for some problems, UNet++ might overfit. In those cases, these intermediate models can be tried instead of using a shallower or narrower UNet++ model.
