@@ -75,55 +75,6 @@ def Attention_Block(skip_connection, gating_signal, num_filters, multiplier):
     return out
 
 
-def MultiResBlock(inputs, model_width, kernel, multiplier, alpha):
-    # MultiRes Block
-    # U {int} -- Number of filters in a corrsponding UNet stage
-    # inp {keras layer} -- input layer
-
-    w = alpha * model_width
-
-    shortcut = inputs
-    shortcut = Conv_Block(shortcut, int(w * 0.167) + int(w * 0.333) + int(w * 0.5), 1, multiplier)
-
-    conv3x3 = Conv_Block(inputs, int(w * 0.167), kernel, multiplier)
-    conv5x5 = Conv_Block(conv3x3, int(w * 0.333), kernel, multiplier)
-    conv7x7 = Conv_Block(conv5x5, int(w * 0.5), kernel, multiplier)
-
-    out = tf.keras.layers.concatenate([conv3x3, conv5x5, conv7x7], axis=-1)
-    out = tf.keras.layers.BatchNormalization()(out)
-    out = tf.keras.layers.Add()([shortcut, out])
-    out = tf.keras.layers.Activation('relu')(out)
-    out = tf.keras.layers.BatchNormalization()(out)
-
-    return out
-
-
-def ResPath(inputs, model_depth, model_width, kernel, multiplier):
-    # ResPath
-    # filters {int} -- [description]
-    # length {int} -- length of ResPath
-    # inp {keras layer} -- input layer
-
-    shortcut = inputs
-    shortcut = Conv_Block(shortcut, model_width, 1, multiplier)
-
-    out = Conv_Block(inputs, model_width, kernel, multiplier)
-    out = tf.keras.layers.Add()([shortcut, out])
-    out = tf.keras.layers.Activation('relu')(out)
-    out = tf.keras.layers.BatchNormalization()(out)
-
-    for _ in range(1, model_depth):
-        shortcut = out
-        shortcut = Conv_Block(shortcut, model_width, 1, multiplier)
-
-        out = Conv_Block(out, model_width, kernel, multiplier)
-        out = tf.keras.layers.Add()([shortcut, out])
-        out = tf.keras.layers.Activation('relu')(out)
-        out = tf.keras.layers.BatchNormalization()(out)
-
-    return out
-
-
 class UNet:
     def __init__(self, length, model_depth, num_channel, model_width, kernel_size, problem_type='Regression',
                  output_nums=1, ds=1, ae=0, ag=0, lstm=0, alpha=1, feature_number=1024, is_transconv=True):
