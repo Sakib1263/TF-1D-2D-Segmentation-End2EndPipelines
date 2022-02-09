@@ -187,7 +187,7 @@ if __name__ == '__main__':
     A_E = 0  # Turn on AutoEncoder Mode for Feature Extraction
     A_G = 1  # Turn on for Guided Attention
     LSTM = 1  # Turn on for LSTM, Implemented for UNet and MultiResUNet only
-    problem_type = 'Regression'
+    problem_type = 'Regression'  # Regression or Classification (Commonly Regression)
     output_nums = 1  # Number of Class for Classification Problems, always '1' for Regression Problems
     is_transconv = True # True: Transposed Convolution, False: UpSampling
     '''Only required if the AutoEncoder Mode is turned on'''
