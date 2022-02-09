@@ -232,7 +232,7 @@ if __name__ == '__main__':
     LSTM = 1  # Turn on for LSTM (Creates BCD-UNet)
     problem_type = 'Regression' # Regression or Classification (Commonly Regression)
     output_nums = 1  # Number of Classes for Classification Problems, always '1' for Regression Problems
-    is_transconv = True # True: Transposed Convolution, False: UpSampling
+    is_transconv = True  # True: Transposed Convolution, False: UpSampling
     '''Only required if the AutoEncoder Mode is turned on'''
     feature_number = 1024  # Number of Features to be Extracted
     # Sample Implementation
