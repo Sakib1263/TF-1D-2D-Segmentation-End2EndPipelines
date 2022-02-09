@@ -77,7 +77,7 @@ def Attention_Block(skip_connection, gating_signal, num_filters, multiplier):
 
 class UNet:
     def __init__(self, length, model_depth, num_channel, model_width, kernel_size, problem_type='Regression',
-                 output_nums=1, ds=1, ae=0, ag=0, lstm=0, alpha=1, feature_number=1024, is_transconv=True):
+                 output_nums=1, ds=1, ae=0, ag=0, lstm=0, feature_number=1024, is_transconv=True):
         # length: Input Signal Length
         # model_depth: Depth of the Model
         # model_width: Width of the Input Layer of the Model
@@ -102,7 +102,6 @@ class UNet:
         self.A_E = ae
         self.A_G = ag
         self.LSTM = lstm
-        self.alpha = alpha
         self.feature_number = feature_number
         self.is_transconv = is_transconv
 
