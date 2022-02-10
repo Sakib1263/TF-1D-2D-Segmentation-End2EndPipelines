@@ -64,8 +64,8 @@ def conv_block(inputs, num_filters):
     # x        : input into the block
     # n_filters: number of filters
     conv = Conv_1D_Block(inputs, num_filters, 3, 2)
-    conv = Conv_1D_Block(conv, num_filters, 3, 2)
-    conv = Conv_1D_Block(conv, num_filters, 3, 2)
+    conv = Conv_1D_Block(conv, num_filters, 3, 1)
+    conv = Conv_1D_Block(conv, num_filters, 3, 1)
 
     return conv
 
@@ -414,11 +414,11 @@ if __name__ == '__main__':
     length = 1024
     model_width = 64
     D_S = 1
-    A_E = 1
+    A_E = 0
     A_G = 1
     feature_number = 1024
-    model_name = 'AlbUNet18'
+    model_name = 'AlbUNet152'
     # Build model for AlbUNet
-    Model = AlbUNet(length, num_channel, model_width, ds=D_S, ae=A_E, ag=A_G, problem_type='Regression', output_nums=1, pooling='avg', dropout_rate=False).AlbUNet18()
+    Model = AlbUNet(length, num_channel, model_width, ds=D_S, ae=A_E, ag=A_G, problem_type='Regression', output_nums=1, pooling='avg', dropout_rate=False).AlbUNet152()
     Model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0003), loss=tf.keras.losses.MeanAbsoluteError(), metrics=tf.keras.metrics.MeanSquaredError())
     Model.summary()
