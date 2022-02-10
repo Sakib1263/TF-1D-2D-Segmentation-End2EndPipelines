@@ -210,7 +210,7 @@ if __name__ == '__main__':
     D_S = 1  # Turn on Deep Supervision
     A_E = 0  # Turn on AutoEncoder Mode for Feature Extraction
     A_G = 1  # Turn on for Guided Attention
-    LSTM = 1  # Turn on for LSTM, Implemented for UNet and MultiResUNet only
+    LSTM = 1  # Turn on for BiConvLSTM
     problem_type = 'Regression'  # Problem Type: Regression or Classification
     output_nums = 1  # Number of Classes for Classification Problems, always '1' for Regression Problems
     is_transconv = True  # True: Transposed Convolution, False: UpSampling
