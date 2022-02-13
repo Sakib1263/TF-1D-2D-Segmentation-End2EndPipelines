@@ -129,6 +129,7 @@ class UNet:
             pool = Feature_Extraction_Block(pool, self.model_width, self.feature_number)
         conv = Conv_Block(pool, self.model_width, self.kernel_size, 2 ** self.model_depth)
         conv = Conv_Block(conv, self.model_width, self.kernel_size, 2 ** self.model_depth)
+        convs["conv%s" % (self.model_depth + 1)] = conv
 
         # Decoding
         convs_list = list(convs.values())
