@@ -99,7 +99,7 @@ class UNet:
         self.feature_number = feature_number
         self.is_transconv = is_transconv
 
-    def UNetPP(self):
+        def UNetPP(self):
         """Variable UNet++ Model Design"""
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
             raise ValueError("Please Check the Values of the Input Parameters!")
@@ -134,18 +134,7 @@ class UNet:
 
         for i in range(1, (self.model_depth + 1)):
             for j in range(0, (self.model_depth - i + 1)):
-                if (i == 1) and (j == (self.model_depth - 1)):
-                    skip_connection = convs_list[j]
-                    if self.A_G == 1:
-                        skip_connection = Attention_Block(convs_list[j], conv, self.model_width, 2 ** j)
-                    if self.is_transconv:
-                        deconv = Concat_Block(skip_connection, trans_conv2D(conv, self.model_width, 2 ** j))
-                    elif not self.is_transconv:
-                        deconv = Concat_Block(skip_connection, upConv_Block(conv))
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                elif (i == 1) and (j < (self.model_depth - 1)):
+                if i == 1:
                     skip_connection = convs_list[j]
                     if self.A_G == 1:
                         skip_connection = Attention_Block(convs_list[j], convs_list[j + 1], self.model_width, 2 ** j)
