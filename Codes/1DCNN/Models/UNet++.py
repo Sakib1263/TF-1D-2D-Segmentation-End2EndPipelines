@@ -106,7 +106,7 @@ class UNet:
         self.is_transconv = is_transconv
         
 
-    def UNetPP(self):
+        def UNetPP(self):
         """Variable UNet++ Model Design"""
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0 or self.kernel_size == 0:
             raise ValueError("Please Check the Values of the Input Parameters!")
@@ -141,25 +141,7 @@ class UNet:
 
         for i in range(1, (self.model_depth + 1)):
             for j in range(0, (self.model_depth - i + 1)):
-                if (i == 1) and (j == (self.model_depth - 1)):
-                    skip_connection = convs_list[j]
-                    if self.A_G == 1:
-                        skip_connection = Attention_Block(convs_list[j], conv, self.model_width, 2 ** j)
-                    if self.is_transconv:
-                        deconv = trans_conv1D(conv, self.model_width, 2 ** j)
-                    elif not self.is_transconv:
-                        deconv = upConv_Block(conv)
-                    if self.LSTM == 1:
-                        x1 = tf.keras.layers.Reshape(target_shape=(1, np.int32(self.length / 2 ** j), np.int32(self.model_width * (2 ** j))))(skip_connection)
-                        x2 = tf.keras.layers.Reshape(target_shape=(1, np.int32(self.length / 2 ** j), np.int32(self.model_width * (2 ** j))))(deconv)
-                        merge = tf.keras.layers.concatenate([x1, x2], axis=-1)
-                        deconv = tf.keras.layers.ConvLSTM1D(filters=np.int32(self.model_width * (2 ** (j - 1))), kernel_size=3, padding='same', return_sequences=False, go_backwards=True, kernel_initializer='he_normal')(merge)
-                    elif self.LSTM == 0:
-                        deconv = Concat_Block(deconv, skip_connection)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** j)
-                    deconvs["deconv%s%s" % (j, i)] = deconv
-                elif (i == 1) and (j < (self.model_depth - 1)):
+                if i == 1:
                     skip_connection = convs_list[j]
                     if self.A_G == 1:
                         skip_connection = Attention_Block(convs_list[j], convs_list[j + 1], self.model_width, 2 ** j)
