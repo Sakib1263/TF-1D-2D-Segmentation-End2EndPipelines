@@ -1,21 +1,27 @@
 # Segmentation-Model-Builder-Tensorflow-Keras
 This repository contains 1D and 2D Signal Segmentation Model Builder for UNet, several of its variants and other models developed in Tensorflow-Keras. The code supports Deep Supervision, Autoencoder mode, Guided Attention, Bi-Directional Convolutional LSTM and other options explained in the codes and demos. The segmentation models can be used for binary or multiclass segmentation, or for regression tasks.  
 
-## Models supported
+## Segmentation Models supported
 1. **UNet** [1]
 2. **UNet Ensembled (UNetE)** [2]
 3. **UNet+ (UNetP)** [2]
 4. **UNet++ (UNetPP)** [3]
 5. **UNet3+** []
 6. **MultiResUNet** [4]
-7. **DenseInseptionUNet** []
-8. **Feature Pyramid Network (FPN)** []
-9. **Pyramid Spatial Pooling (PSP) Net** []
-10. **AlbUNet** []
-11. **TernausUNet** []
-12. **BCDUNet** []
-13. **SEDUNet or MGCUNet** []
-14. **IBAUNet** []
+7. **BCDUNet**
+8. **IBAUNet**
+9. **SEDUNet or MCGUNet**
+10. **NABNet**
+
+## Pretrained (ImageNet) Encoders supported (from TensorFlow Library)
+1. **ResNet:** ResNet50, ResNet101, ResNet152, ResNet50V2, ResNet101V2, ResNet152V2
+2. **VGG:** VGG16, VGG19
+3. **DenseNet:** DenseNet121, DenseNet169, DenseNet201
+4. **MobileNet:** MobileNet, MobileNetV2, MobileNetV3Small, MobileNetV3Large
+5. **Inception:** InceptionV3, InceptionResNetV2
+6. **EfficientNetV1:** EfficientNetB[0-7]
+7. **EfficientNetV2:** EfficientNetV2B[0-3], EfficientNetV2S, EfficientNetV2M, EfficientNetV2L
+8. **CheXNet**
 
 ## UNet to UNet++
 As it can be seen, from UNet to UNet++, the models become more nested and denser (so heavier i.e., more parameters). UNet++ is like a combination of UNetE and UNet+. Normally users do not try UNet+ or UNetE. But for some problems, UNet++ might overfit. In those cases, these intermediate models can be tried instead of using a shallower or narrower UNet++ model.
