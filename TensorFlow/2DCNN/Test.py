@@ -30,7 +30,8 @@ encoder_name = config_file["TEST"]["encoder_name"]
 decoder_name = config_file["TEST"]["decoder_name"]
 '''Test Configurations'''
 batch_size = int(config_file["TEST"]["batch_size"])
-normalizing_factor = float(config_file["TEST"]["normalizing_factor"])
+normalizing_factor_img = float(config_file["TEST"]["normalizing_factor_img"])
+normalizing_factor_msk = float(config_file["TEST"]["normalizing_factor_msk"])
 start_fold = int(config_file["TEST"]["start_fold"])
 end_fold = int(config_file["TEST"]["end_fold"])
 num_iter = int(config_file["TEST"]["num_iter"])
@@ -110,14 +111,14 @@ for i in range(start_fold, end_fold):
         pred_dir_all.append(pred_dir)
         # print(img_dir)
         img = PIL.Image.open(img_dir)
-        img = np.asarray(img)/normalizing_factor
+        img = np.asarray(img)/normalizing_factor_img
         img_shape = img.shape
         if len(img_shape) < 3:
           img = np.expand_dims(img, axis=2)
         img_batch[counter-1,:,:,:] = img
         # Corresponding Ground Truth Mask
         msk = PIL.Image.open(msk_dir)
-        msk = np.asarray(msk)/(normalizing_factor/num_class)
+        msk = np.asarray(msk)/normalizing_factor_msk
         msk_shape = msk.shape
         if len(msk_shape) == 3:
           msk = msk[:,:,0]
