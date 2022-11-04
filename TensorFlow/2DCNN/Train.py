@@ -26,7 +26,8 @@ imwidth = int(config_file["TRAIN"]["imwidth"])
 image_color_mode = config_file["TRAIN"]["image_color_mode"]
 mask_color_mode = config_file["TRAIN"]["mask_color_mode"]
 num_channel = int(config_file["TRAIN"]["num_channel"])
-normalizing_factor = float(config_file["TRAIN"]["normalizing_factor"])
+normalizing_factor_img = float(config_file["TRAIN"]["normalizing_factor_img"])
+normalizing_factor_msk = float(config_file["TRAIN"]["normalizing_factor_msk"])
 '''Model Configurations'''
 encoder_mode = config_file["TRAIN"]["encoder_mode"]
 '''Encoder Configurations'''
@@ -216,15 +217,14 @@ train_mask_datagen = []
 val_image_datagen = []
 val_mask_datagen = []
 if (D_S == 0) and (data_loading_mode == "TF_DataLoader"):
-    normalization_layer = tf.keras.layers.Rescaling(1./normalizing_factor)
     if not independent_val_set:
-        image_datagen = ImageDataGenerator(rescale=1./normalizing_factor, featurewise_center=False, featurewise_std_normalization=False, validation_split=validation_portion)
-        mask_datagen = ImageDataGenerator(rescale=1./(normalizing_factor/2), featurewise_center=False, featurewise_std_normalization=False, validation_split=validation_portion)
+        image_datagen = ImageDataGenerator(rescale=1./normalizing_factor_img, featurewise_center=False, featurewise_std_normalization=False, validation_split=validation_portion)
+        mask_datagen = ImageDataGenerator(rescale=1./normalizing_factor_msk, featurewise_center=False, featurewise_std_normalization=False, validation_split=validation_portion)
     elif independent_val_set:
-        train_image_datagen = ImageDataGenerator(rescale=1./normalizing_factor,featurewise_center=False, featurewise_std_normalization=False, validation_split=0.0)
-        train_mask_datagen = ImageDataGenerator(rescale=1./(normalizing_factor/2),featurewise_center=False, featurewise_std_normalization=False, validation_split=0.0)
-        val_image_datagen = ImageDataGenerator(rescale=1./normalizing_factor,validation_split=0.0)
-        val_mask_datagen = ImageDataGenerator(rescale=1./(normalizing_factor/2), validation_split=0.0)
+        train_image_datagen = ImageDataGenerator(rescale=1./normalizing_factor_img,featurewise_center=False, featurewise_std_normalization=False, validation_split=0.0)
+        train_mask_datagen = ImageDataGenerator(rescale=1./normalizing_factor_msk,featurewise_center=False, featurewise_std_normalization=False, validation_split=0.0)
+        val_image_datagen = ImageDataGenerator(rescale=1./normalizing_factor_img,validation_split=0.0)
+        val_mask_datagen = ImageDataGenerator(rescale=1./normalizing_factor_msk, validation_split=0.0)
 # Main Training Loop
 for i in range(start_fold, end_fold):
     # Import Train Dataset using Image Data Generator pipeline
@@ -281,14 +281,14 @@ for i in range(start_fold, end_fold):
             loss_weights[i] = 1 - (i * 0.1)
         if independent_val_set:
             print('Importing Entire Train Data...')
-            X_Train, Y_Train = get_datasets(train_image_dir, train_mask_dir, imlength, imwidth, num_channel, normalizing_factor, class_number)
-            X_Val, Y_Val = get_datasets(val_image_dir, val_mask_dir, imlength, imwidth, num_channel, normalizing_factor, class_number)
+            X_Train, Y_Train = get_datasets(train_image_dir, train_mask_dir, imlength, imwidth, num_channel, normalizing_factor_img, normalizing_factor_msk, class_number)
+            X_Val, Y_Val = get_datasets(val_image_dir, val_mask_dir, imlength, imwidth, num_channel, normalizing_factor_img, normalizing_factor_msk, class_number)
             print('Preparing Data for Deep Supervision...')
             Y_Train_Dict = prepareTrainDict(Y_Train, model_depth, imlength, imwidth, ds_type)
             Y_Val_Dict = prepareTrainDict(Y_Val, model_depth, imlength, imwidth, ds_type)
         elif not independent_val_set:
             print('Importing Entire Train Data...')
-            X_Train1, Y_Train1 = get_datasets(train_image_dir, train_mask_dir, imlength, imwidth, num_channel, normalizing_factor, class_number)
+            X_Train1, Y_Train1 = get_datasets(train_image_dir, train_mask_dir, imlength, imwidth, num_channel, normalizing_factor_img, normalizing_factor_msk, class_number)
             print('Randomly Splitting Data into Train and Validation Sets...')
             X_Train, X_Val, Y_Train, Y_Val = train_test_split(X_Train1, Y_Train1, test_size=validation_portion, random_state=42)
             print('Preparing Data for Deep Supervision...')
@@ -297,11 +297,11 @@ for i in range(start_fold, end_fold):
     elif (D_S == 0) and (data_loading_mode == "Legacy"):
         if independent_val_set:
             print('Importing Entire Train Data...')
-            X_Train, Y_Train = get_datasets(train_image_dir, train_mask_dir, imlength, imwidth, num_channel, normalizing_factor, class_number)
-            X_Val, Y_Val = get_datasets(val_image_dir, val_mask_dir, imlength, imwidth, num_channel, normalizing_factor, class_number)
+            X_Train, Y_Train = get_datasets(train_image_dir, train_mask_dir, imlength, imwidth, num_channel, normalizing_factor_img, normalizing_factor_msk, class_number)
+            X_Val, Y_Val = get_datasets(val_image_dir, val_mask_dir, imlength, imwidth, num_channel, normalizing_factor_img, normalizing_factor_msk, class_number)
         elif not independent_val_set:
             print('Importing Entire Train Data...')
-            X_Train1, Y_Train1 = get_datasets(train_image_dir, train_mask_dir, imlength, imwidth, num_channel, normalizing_factor, class_number)
+            X_Train1, Y_Train1 = get_datasets(train_image_dir, train_mask_dir, imlength, imwidth, num_channel, normalizing_factorImg, normalizing_factor_msk, class_number)
             print('Randomly Splitting Data into Train and Validation Sets...')
             X_Train, X_Val, Y_Train, Y_Val = train_test_split(X_Train1, Y_Train1, test_size=validation_portion, random_state=42)
     else:

@@ -204,7 +204,7 @@ def plot_multiclass_precision_recall_curves(Y_Test, Predictions, class_number, s
     plt.close()
 
 
-def get_datasets(imgs_dir, groundTruth_dir, height, width, channels, normalizing_factor, class_number):
+def get_datasets(imgs_dir, groundTruth_dir, height, width, channels, normalizing_factor_img, normalizing_factor_msk, class_number):
     Nimgs = len(os.listdir(imgs_dir))  # List containing all images
     Nmsks = len(os.listdir(groundTruth_dir))  # List containing all images
     print(f"Number of Test Images: {Nimgs}")
@@ -216,13 +216,13 @@ def get_datasets(imgs_dir, groundTruth_dir, height, width, channels, normalizing
             # Original
             # print("Original image: "+files[i])
             img = PIL.Image.open(imgs_dir + '/' + files[i])
-            img = np.asarray(img)/normalizing_factor
+            img = np.asarray(img)/normalizing_factor_img
             imgs[i,:,:,:] = img
             # Corresponding Ground Truth
             groundTruth_name = files[i]
             # print ("Ground Truth Name: " + groundTruth_name)
             g_truth = PIL.Image.open(groundTruth_dir + '/' + groundTruth_name)
-            g_truth = np.asarray(g_truth)/(normalizing_factor/class_number)
+            g_truth = np.asarray(g_truth/normalizing_factor_msk)
             groundTruth[i,:,:] = g_truth
 
     print("Max Pixel Value for Images: " + str(np.max(imgs)))
