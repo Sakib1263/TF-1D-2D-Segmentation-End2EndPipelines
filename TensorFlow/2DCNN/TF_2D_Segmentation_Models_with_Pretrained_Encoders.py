@@ -514,7 +514,7 @@ def MultiResUNet(skip_connections, model_width, model_depth, D_S, A_G, LSTM, is_
 
 class UNetWithPretrainedEncoder:
     def __init__(self, decoder_name, length, width, model_width, model_depth, problem_type='Regression', num_channels=3, output_nums=1, ds=0, ae=0, ag=0, lstm=0,
-                 dense_loop=1, feature_number=1024, is_transconv=True, alpha=1.0, final_activation="linear", train_mode='pretrained_encoder', is_base_model_trainable=False):
+                 dense_loop=1, feature_number=1024, is_transconv=True, alpha=1.0, final_activation="sigmoid", train_mode='pretrained_encoder', is_base_model_trainable=False):
         # decoder_name: Name of the decoder model e.g., UNet, UNet++, etc.
         # length: Input Image Length (x-dim)
         # width: Input Image Width (y-dim) [Normally same as the x-dim i.e., Square shape]
