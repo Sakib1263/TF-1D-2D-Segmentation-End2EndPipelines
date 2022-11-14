@@ -356,5 +356,5 @@ for i in range(start_fold, end_fold):
     num_iter = num_iter + 1
     print('=======================================================================================')
     # Garbage Collector
-    del Segmentation_Model  # Delect any existing Model from the Memory to avoid Reuse in the next iteration
+    del model  # Delect any existing Model from the Memory to avoid Reuse in the next iteration
     gc.collect()
