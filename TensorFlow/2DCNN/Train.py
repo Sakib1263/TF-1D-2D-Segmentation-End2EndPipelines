@@ -6,7 +6,7 @@ import tensorflow as tf
 from TF_Losses import TFLosses
 from TF_Metrics import TFMetrics
 from TF_Optimizers import TFOptimizers
-from TF_2D_Segmentation_Models_with_Pretrained_Encoders import UNetWithPretrainedEncoder
+from TF_2D_Segmentation_Models_with_Pretrained_Encoders_KERAS import UNetWithPretrainedEncoder
 from Helper_Functions import *
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import EarlyStopping, ModelCheckpoint
