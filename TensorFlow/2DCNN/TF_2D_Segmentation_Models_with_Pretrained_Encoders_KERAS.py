@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-def Conv_Block(inputs, model_width, kernel, bn=True, activation_fun='relu'):
+def Conv_Block(inputs, model_width, kernel, bn=True, activation_fun='relu6'):
     # 2D Convolutional Block
     x = tf.keras.layers.Conv2D(model_width, kernel, padding='same')(inputs)
     if bn == True:
