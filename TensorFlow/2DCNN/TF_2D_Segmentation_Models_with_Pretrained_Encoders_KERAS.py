@@ -16,7 +16,7 @@ def Conv_Block(inputs, model_width, kernel, bn=True, activation_fun='relu'):
 
 def trans_conv2D(inputs, model_width, bn=True, activation_fun='relu'):
     # 2D Transposed Convolutional Block, used instead of UpSampling
-    x = tf.keras.layers.Conv2DTranspose(model_width, (2, 2), strides=(2, 2), padding='same')(inputs)  # Stride = 2, Kernel Size = 2
+    x = tf.keras.layers.Conv2DTranspose(model_width, (4, 4), strides=(2, 2), padding='same')(inputs)  # Stride = 2, Kernel Size = 2
     if bn == True:
         x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.Activation(activation_fun)(x)
