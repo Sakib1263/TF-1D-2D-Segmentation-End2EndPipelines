@@ -388,11 +388,11 @@ if __name__ == '__main__':
     length = 1024
     model_width = 64
     D_S = 1
-    A_E = 1
+    A_E = 0
     A_G = 1
     feature_number = 1024
-    model_name = 'TernausNet16'
+    model_name = 'TernausNet19'
     # Build model for TernausNet
-    Model = TernausNet(length, num_channel, model_width, problem_type='Regression', output_nums=1, ds=D_S, ae=A_E, ag=A_G, is_transconv=True).TernausNet16()
+    Model = TernausNet(length, num_channel, model_width, problem_type='Regression', output_nums=1, ds=D_S, ae=A_E, ag=A_G, is_transconv=True).TernausNet19()
     Model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0003), loss=tf.keras.losses.MeanAbsoluteError(), metrics=tf.keras.metrics.MeanSquaredError())
     Model.summary()

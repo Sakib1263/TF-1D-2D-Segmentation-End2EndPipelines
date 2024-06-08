@@ -1,5 +1,4 @@
 # Import Necessary Libraries
-import numpy as np
 import tensorflow as tf
 
 
@@ -83,7 +82,10 @@ def Downsampling_Block(inputs, model_width, multiplier):
     conv3x3_dbl_2 = Conv_Block(conv3x3_dbl, model_width, 3, 2, multiplier)
     #
     branch_concat = tf.keras.layers.concatenate([pool, conv3x3, conv3x3_dbl_2], axis=-1)
-    out = Conv_Block(branch_concat, model_width, 1, 1, multiplier)
+    branch_conv = Conv_Block(branch_concat, model_width, 1, 1, multiplier)
+    #
+    x = tf.keras.layers.BatchNormalization()(branch_conv)
+    out = tf.keras.layers.Activation('relu')(x)
 
     return out
 
@@ -100,7 +102,10 @@ def Upsampling_Block(inputs, model_width, multiplier):
     transconv3x3_dbl_2 = trans_conv1D(transconv3x3_dbl, model_width, 3, 2, multiplier)
     #
     branch_concat = tf.keras.layers.concatenate([upconv1D, transconv3x3, transconv3x3_dbl_2], axis=-1)
-    out = trans_conv1D(branch_concat, model_width, 1, 1, multiplier)
+    branch_conv = trans_conv1D(branch_concat, model_width, 1, 1, multiplier)
+    #
+    x = tf.keras.layers.BatchNormalization()(branch_conv)
+    out = tf.keras.layers.Activation('relu')(x)
 
     return out
 
@@ -118,33 +123,16 @@ def Inception_Res_Block(inputs, model_width, multiplier):
     branch_concat = tf.keras.layers.concatenate([conv1x1_BN, conv3x3, conv3x3_trpl], axis=-1)
     branch_conv = Conv_Block(branch_concat, model_width, 1, 1, multiplier)
     #
-    out = tf.keras.layers.concatenate([inputs, branch_conv], axis=-1)
+    x = tf.keras.layers.concatenate([inputs, branch_conv], axis=-1)
+    x = tf.keras.layers.BatchNormalization()(x)
+    out = tf.keras.layers.Activation('relu')(x)
 
     return out
 
 
-def Inception_Res_Block_2(inputs, model_width, multiplier):
-    # Inception Residual Block
-    conv1x1 = Conv_Block(inputs, model_width, 1, 1, multiplier)
-    #
-    pool = tf.keras.layers.MaxPooling1D(pool_size=1)(inputs)
-    conv1x1_2 = Conv_Block(pool, model_width, 1, 1, multiplier, is_batchnorm=False, is_relu=False)
-    #
-    conv1x1_dbl = Conv_Block(inputs, model_width, 1, 1, multiplier, is_batchnorm=False, is_relu=False)
-    conv3x3_dbl = Conv_Block(conv1x1_dbl, model_width, 3, 1, multiplier)
-    conv3x3_trpl = Conv_Block(conv3x3_dbl, model_width, 3, 1, multiplier)
-    #
-    branch_concat = tf.keras.layers.concatenate([conv1x1, conv1x1_2, conv3x3_trpl], axis=-1)
-    branch_conv = Conv_Block(branch_concat, model_width, 1, 1, multiplier)
-    #
-    out = tf.keras.layers.concatenate([inputs, branch_conv], axis=-1)
-
-    return out
-
-
-def Dense_Inception_Block(x, model_width, multiplier, num_dense_loop):
-    for _ in range(0, num_dense_loop):
-        IRU = Inception_Res_Block_2(x, model_width, multiplier)
+def Dense_Inception_Block(x, model_width, multiplier):
+    for _ in range(0, 3):
+        IRU = Inception_Res_Block(x, model_width, multiplier)
         x = tf.keras.layers.concatenate([x, IRU], axis=-1)
 
     return x
@@ -152,7 +140,7 @@ def Dense_Inception_Block(x, model_width, multiplier, num_dense_loop):
 
 class Dense_Inception_UNet:
     def __init__(self, length, model_depth, num_channel, model_width, kernel_size, problem_type='Regression',
-                 output_nums=1, num_dense_loop=0, ds=0, ae=0, ag=0, feature_number=1024):
+                 output_nums=1, ds=0, ae=0, ag=0, feature_number=1024):
         # length: Input Signal Length
         # model_depth: Depth of the Model
         # model_width: Width of the Input Layer of the Model
@@ -163,7 +151,6 @@ class Dense_Inception_UNet:
         # ds: Checks where Deep Supervision is active or not, either 0 or 1 [Default value set as 0]
         # ae: Enables or diables the AutoEncoder Mode, either 0 or 1 [Default value set as 0]
         # ag: Checks where Attention Guided is active or not, either 0 or 1 [Default value set as 0]
-        # dense_loop: Number of Dense Block in the most bottom layers (1 and 3 are defaults for the BCDUNet's latent layer)
         # feature_number: Number of Features or Embeddings to be extracted from the AutoEncoder in the A_E Mode
         self.length = length
         self.model_depth = model_depth
@@ -175,7 +162,6 @@ class Dense_Inception_UNet:
         self.D_S = ds
         self.A_E = ae
         self.A_G = ag
-        self.num_dense_loop = num_dense_loop
         self.feature_number = feature_number
 
     def Dense_Inception_UNet(self):
@@ -192,7 +178,7 @@ class Dense_Inception_UNet:
 
         for i in range(1, (self.model_depth + 1)):
             if i == self.model_depth:
-                conv = Dense_Inception_Block(pool, self.model_width, 2 ** (i - 1), self.num_dense_loop)
+                conv = Dense_Inception_Block(pool, self.model_width, 2 ** (i - 1))
                 pool = Downsampling_Block(conv, self.model_width, 2 ** (i - 1))
                 convs["conv%s" % i] = conv
                 continue
@@ -204,7 +190,7 @@ class Dense_Inception_UNet:
         if self.A_E == 1:
             # Collect Latent Features or Embeddings from AutoEncoders
             pool = Feature_Extraction_Block(pool, self.model_width, self.feature_number)
-        conv = Dense_Inception_Block(pool, self.model_width, 2 ** self.model_depth, self.num_dense_loop)
+        conv = Dense_Inception_Block(pool, self.model_width, 2 ** self.model_depth)
 
         # Decoding
         deconv = conv
@@ -218,11 +204,11 @@ class Dense_Inception_UNet:
             if self.D_S == 1:
                 level = tf.keras.layers.Conv1D(1, 1, name=f'level{layer_num}')(deconv)
                 levels.append(level)
-            deconv = Upsampling_Block(deconv, self.model_width, 2 ** (layer_num - 1))
-            deconv = Concat_Block(deconv, skip_connection)
             if layer_num == self.model_depth:
-                deconv = Dense_Inception_Block(deconv, self.model_width, 2 ** (layer_num - 1), self.num_dense_loop)
+                deconv = Concat_Block(Upsampling_Block(deconv, self.model_width, 2 ** (layer_num - 1)), skip_connection)
+                deconv = Dense_Inception_Block(deconv, self.model_width, 2 ** (layer_num - 1))
             else:
+                deconv = Concat_Block(Upsampling_Block(deconv, self.model_width, 2 ** (layer_num - 1)), skip_connection)
                 deconv = Inception_Res_Block(deconv, self.model_width, 2 ** (layer_num - 1))
 
         deconv = Inception_Res_Block(deconv, self.model_width, 0.5)
@@ -252,14 +238,12 @@ if __name__ == '__main__':
     num_channel = 1  # Number of Channels in the Model
     D_S = 1  # Turn on Deep Supervision
     A_E = 0  # Turn on AutoEncoder Mode for Feature Extraction
-    A_G = 0  # Turn on for Guided Attention
-    num_dense_loop = 2
+    A_G = 1  # Turn on for Guided Attention
     problem_type = 'Regression'
     output_nums = 1  # Number of Class for Classification Problems, always '1' for Regression Problems
     feature_number = 1024  # Number of Features to be Extracted, only required if the AutoEncoder Mode is turned on
     model_name = 'Dense_Inception_UNet'  # Dense_Inception_UNet
     #
-    Model = Dense_Inception_UNet(signal_length, model_depth, num_channel, model_width, kernel_size, problem_type=problem_type,
-                                 output_nums=output_nums, num_dense_loop =num_dense_loop, ds=D_S, ae=A_E, ag=A_G).Dense_Inception_UNet()
-    Model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0003), loss=tf.keras.losses.MeanAbsoluteError(), metrics=tf.keras.metrics.MeanSquaredError())
+    Model = Dense_Inception_UNet(signal_length, model_depth, num_channel, model_width, kernel_size, problem_type=problem_type, output_nums=output_nums, ds=D_S, ae=A_E, ag=A_G).Dense_Inception_UNet()
+    Model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['mean_squared_error'])
     Model.summary()

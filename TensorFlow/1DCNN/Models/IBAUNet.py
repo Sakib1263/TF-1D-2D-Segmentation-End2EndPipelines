@@ -114,7 +114,7 @@ class IBAUNet:
         self.is_transconv = is_transconv
 
     def IBAUNet(self):
-        # Variable 1D_IBAUNet Model Design
+        # Variable 1DBCDUNet Model Design
         if self.length == 0 or self.model_depth == 0 or self.model_width == 0 or self.num_channel == 0:
             raise ValueError("Please Check the Values of the Input Parameters!")
 

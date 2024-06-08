@@ -1,5 +1,4 @@
 # Import Necessary Libraries
-import gc
 import numpy as np
 import tensorflow as tf
 
@@ -155,9 +154,6 @@ class BCDUNet:
                 x2 = tf.keras.layers.Reshape(target_shape=(1, np.int32(self.length / 2 ** (self.model_depth - j - 1)), np.int32(self.model_width * (2 ** (self.model_depth - j - 1)))))(deconv)
                 merge = tf.keras.layers.concatenate([x1, x2], axis=-1)
                 deconv = tf.keras.layers.ConvLSTM1D(filters=np.int32(self.model_width * (2 ** (self.model_depth - j - 2))), kernel_size=3, padding='same', return_sequences=False, go_backwards=True, kernel_initializer='he_normal')(merge)
-            elif self.LSTM == 0:
-                deconv = Concat_Block(deconv, skip_connection)
-
             deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
             deconv = Conv_Block(deconv, self.model_width, self.kernel_size, 2 ** (self.model_depth - j - 1))
 
