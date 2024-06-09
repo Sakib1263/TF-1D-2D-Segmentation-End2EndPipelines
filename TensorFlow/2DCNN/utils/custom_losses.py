@@ -45,3 +45,4 @@ class FocalLoss(tf.keras.losses.Loss):
     focal_loss = K.mean(alpha * K.pow((1-BCE_EXP), gamma) * BCE)
 
     return focal_loss
+    
